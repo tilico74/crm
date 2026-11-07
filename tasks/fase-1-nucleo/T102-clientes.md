@@ -1,0 +1,30 @@
+# T102 — Clientes
+
+| Campo | Valor |
+| --- | --- |
+| Status | A fazer |
+| Depende de | T101, T104, M001 |
+| Skills | `mapear-entidade-marketup`, `criar-tela-listagem`, `criar-tela-formulario`, `normalizar-nomes` |
+| Contexto | `context/03-modelo-de-dados.md`, `context/regras-de-negocio/` |
+
+## Objetivo
+
+Cadastro de clientes (PF e PJ), contatos, endereços e lista de preço, com ID = ClientID.
+
+## Critérios de aceite
+
+- Campos e ordem iguais aos da MarketUP
+- Nome e endereço normalizados ao gravar
+- CPF e CNPJ validados
+- Listagem e formulário no modelo MarketUP
+
+## Checklist
+
+- [ ] Modelo e API
+- [ ] Listagem
+- [ ] Formulário
+- [ ] Testes
+
+## Dúvidas
+
+- Nenhuma por enquanto.

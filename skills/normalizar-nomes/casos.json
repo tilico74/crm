@@ -1,0 +1,166 @@
+{
+  "descricao": "Casos de teste da padronização de nomes. Back-end e front-end devem passar em todos. Entrada = como foi digitado ou importado; esperado = como deve ser gravado.",
+  "particulas": [
+    "a",
+    "as",
+    "com",
+    "da",
+    "das",
+    "de",
+    "del",
+    "della",
+    "di",
+    "do",
+    "dos",
+    "du",
+    "e",
+    "em",
+    "na",
+    "nas",
+    "no",
+    "nos",
+    "o",
+    "os",
+    "para",
+    "por",
+    "van",
+    "von",
+    "y"
+  ],
+  "siglas": [
+    "CIA",
+    "CNPJ",
+    "CPF",
+    "EIRELI",
+    "EPI",
+    "EPP",
+    "LTDA",
+    "ME",
+    "MEI",
+    "ONG",
+    "RDX",
+    "S.A.",
+    "S/A",
+    "SA"
+  ],
+  "romanos": [
+    "X",
+    "V",
+    "I",
+    "XX",
+    "II",
+    "IV",
+    "IX",
+    "XV",
+    "XI",
+    "VI",
+    "VII",
+    "III",
+    "XII",
+    "XIV",
+    "VIII",
+    "XIII"
+  ],
+  "casos": [
+    {
+      "entrada": "JOSÉ DA SILVA E SOUZA",
+      "esperado": "José da Silva e Souza"
+    },
+    {
+      "entrada": "maria dos santos",
+      "esperado": "Maria dos Santos"
+    },
+    {
+      "entrada": "  ana   paula  de  oliveira ",
+      "esperado": "Ana Paula de Oliveira"
+    },
+    {
+      "entrada": "rua das flores",
+      "esperado": "Rua das Flores"
+    },
+    {
+      "entrada": "PRAÇA DA SÉ",
+      "esperado": "Praça da Sé"
+    },
+    {
+      "entrada": "av. sete de setembro",
+      "esperado": "Av. Sete de Setembro"
+    },
+    {
+      "entrada": "rua 7 de setembro, 120",
+      "esperado": "Rua 7 de Setembro, 120"
+    },
+    {
+      "entrada": "condominio residencial do lago",
+      "esperado": "Condominio Residencial do Lago"
+    },
+    {
+      "entrada": "rdx redes de protecao ltda",
+      "esperado": "RDX Redes de Protecao LTDA"
+    },
+    {
+      "entrada": "comercio de telas s/a",
+      "esperado": "Comercio de Telas S/A"
+    },
+    {
+      "entrada": "rua dom pedro ii",
+      "esperado": "Rua Dom Pedro II"
+    },
+    {
+      "entrada": "rodovia br-116 km 12",
+      "esperado": "Rodovia BR-116 Km 12"
+    },
+    {
+      "entrada": "da costa transportes",
+      "esperado": "Da Costa Transportes"
+    },
+    {
+      "entrada": "d'avila materiais",
+      "esperado": "D'Avila Materiais"
+    },
+    {
+      "entrada": "travessa gota d'água",
+      "esperado": "Travessa Gota d'Água"
+    },
+    {
+      "entrada": "ana-maria dos reis",
+      "esperado": "Ana-Maria dos Reis"
+    },
+    {
+      "entrada": "JARDIM DAS AMÉRICAS",
+      "esperado": "Jardim das Américas"
+    },
+    {
+      "entrada": "são josé dos pinhais",
+      "esperado": "São José dos Pinhais"
+    },
+    {
+      "entrada": "joão e maria materiais me",
+      "esperado": "João e Maria Materiais ME"
+    },
+    {
+      "entrada": "e",
+      "esperado": "E"
+    },
+    {
+      "entrada": "",
+      "esperado": ""
+    },
+    {
+      "entrada": "ESCOLA ESTADUAL VINICIUS DE MORAES",
+      "esperado": "Escola Estadual Vinicius de Moraes"
+    },
+    {
+      "entrada": "leonardo di caprio",
+      "esperado": "Leonardo di Caprio"
+    },
+    {
+      "entrada": "rua a",
+      "esperado": "Rua A"
+    },
+    {
+      "entrada": "QUADRA B LOTE 3",
+      "esperado": "Quadra B Lote 3"
+    }
+  ]
+}

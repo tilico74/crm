@@ -11,6 +11,8 @@
 | RG | 9 caracteres: `12.345.678-X`; 8: `1.234.567-8`; 7 (SC): `1.234.567`; outros: como digitado | dígitos e `X` | Nenhuma (cada estado tem um formato) |
 | CEP | `88138-152` | `88138152` | 8 dígitos |
 | Telefone fixo | `(48) 3222-1234` | `4832221234` | 10 dígitos (DDD + número) |
+| NCM (produto) | `5608.19.00` | `56081900` | 8 dígitos |
+| CEST (produto) | `01.020.00` | `0102000` | 7 dígitos |
 | Celular | `(48) 99961-4233` | `48999614233` | 11 dígitos |
 | Dinheiro | `R$ 1.234,56` | decimal com 2 casas | — |
 | Percentual | `5,00%` | decimal com 2 casas | — |

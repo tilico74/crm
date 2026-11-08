@@ -11,6 +11,10 @@ import { ThemeProvider } from "./app/theme";
 import { CategoriaForm } from "./resources/catalogo/CategoriaForm";
 import { CategoriasList } from "./resources/catalogo/CategoriasList";
 import { MarcasList } from "./resources/catalogo/MarcasList";
+import { ProdutoForm } from "./resources/catalogo/ProdutoForm";
+import { ProdutosList } from "./resources/catalogo/ProdutosList";
+import { ServicoForm } from "./resources/catalogo/ServicoForm";
+import { ServicosList } from "./resources/catalogo/ServicosList";
 import { UnidadesList } from "./resources/catalogo/UnidadesList";
 import { InformacoesEmpresa } from "./resources/empresa/InformacoesEmpresa";
 import { ParametrosVenda } from "./resources/empresa/ParametrosVenda";
@@ -44,6 +48,10 @@ export default function App() {
             >
               <Route index element={<Inicio />} />
               <Route path="catalogo">
+                <Route path="produtos" element={<ProdutosList />} />
+                <Route path="produtos/:id" element={<ProdutoForm />} />
+                <Route path="servicos" element={<ServicosList />} />
+                <Route path="servicos/:id" element={<ServicoForm />} />
                 <Route path="unidades" element={<UnidadesList />} />
                 <Route path="marcas" element={<MarcasList />} />
                 <Route path="categorias" element={<CategoriasList />} />

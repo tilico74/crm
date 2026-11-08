@@ -245,3 +245,16 @@ Marcas na RDX (ID · nome): 1 Equiplex · 2 Metalúrgica Verdadeiro · 3 Trifixi
 ### Serviços (`Servicos.xls`)
 
 Código · Nome · Unidade · Custo · Valor · Ativo. **Não traz o `ServiceID`.**
+
+### Ficha do produto (`item/detail/{ItemID}`) — conferida em 08/11/2026
+
+- **Coluna da esquerda:** código de barras (com o desenho das barras), foto ("Download de imagem") e Ativo / Inativo.
+- **Dados:** Descrição · Tipo de item (Produto, Kit, Insumo, Brinde) · Unidade (+) · Código de balança (só para KG) · Categoria (+) · Subcategoria (+) · Marca (+) · Modelo · Código interno · Tags.
+- **Preços:** Custo (última compra) · Venda varejo · Venda atacado · **Margem de lucro aproximada** (varejo e atacado, calculada na tela: (venda − custo) ÷ venda) · Qtde mínima p/ atacado · "Reajustar preço de venda pela margem de lucro".
+- **Características (abas):** Estoque (Movimentar estoque · Movimentar estoque da composição · Tipo de estoque Único/Grade) · Fiscal (Tipo · NCM · Origem · CEST · Classificação) · Composição (Item · Quantidade · Unidade · Custo unitário · Custo total) · Fragmentação ("Para realizar a venda fracionada": 1 <unidade> = Quantidade · Unidade · Valor de venda · Estoque de consumo; ex. 1 Litro = 1000 ml, 1 Caixa = 10 pacotes) · PDV e Loja virtual (fora do escopo).
+- Listas fiscais: **Tipo** = Ativo imobilizado, Embalagem, Material de uso e consumo, Matéria-prima, Mercadoria para revenda, Outras, Outros insumos, Produto acabado, Produto em processo, Produto intermediário, Serviços, Subproduto. **Origem** = 0 a 8 (tabela oficial da NF-e). **Classificação** = Comum, Medicamentos, Armamentos, Combustíveis, Veículos novos.
+- Na RDX: 169 Produtos, **18 Kits** (usam Composição), 3 Insumos; nenhum movimenta estoque; nenhum usa grade; códigos de barras todos diferentes (100 internos "4000…", 67 "2000…").
+
+### Ficha do serviço (`service/detail/{ServiceID}`)
+
+Serviço ativo? · Código de barras · Nome do serviço · Custo · Valor · Unidade · "Reajustar valor pela margem de lucro". Lista: Código · Nome · Unidade · Valor · Ativo.

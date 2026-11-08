@@ -2,7 +2,7 @@
 // No banco os valores ficam LIMPOS; a máscara é só na tela. Mesmas regras em
 // backend/apps/core/documentos.py.
 
-export type TipoMascara = "cpf" | "cnpj" | "cpfCnpj" | "rg" | "cep" | "telefone";
+export type TipoMascara = "cpf" | "cnpj" | "cpfCnpj" | "rg" | "cep" | "telefone" | "ncm" | "cest";
 
 const soDigitos = (v: string) => v.replace(/\D/g, "");
 const soAlfanumerico = (v: string) => v.toUpperCase().replace(/[^0-9A-Z]/g, "");
@@ -41,6 +41,10 @@ export function limpar(tipo: TipoMascara, valor: string | null | undefined): str
       return soDigitos(v).slice(0, 8);
     case "telefone":
       return soDigitos(v).slice(0, 11);
+    case "ncm":
+      return soDigitos(v).slice(0, 8);
+    case "cest":
+      return soDigitos(v).slice(0, 7);
   }
 }
 
@@ -77,6 +81,12 @@ export const formatarRg = (v: string | null | undefined) => {
   return limpo;
 };
 
+/** NCM da nota fiscal: 0000.00.00 (8 dígitos). */
+export const formatarNcm = (v: string | null | undefined) => aplicar(limpar("ncm", v), "####.##.##");
+
+/** CEST: 00.000.00 (7 dígitos). */
+export const formatarCest = (v: string | null | undefined) => aplicar(limpar("cest", v), "##.###.##");
+
 const FORMATADORES: Record<TipoMascara, (v: string) => string> = {
   cpf: formatarCpf,
   cnpj: formatarCnpj,
@@ -84,6 +94,8 @@ const FORMATADORES: Record<TipoMascara, (v: string) => string> = {
   rg: formatarRg,
   cep: formatarCep,
   telefone: formatarTelefone,
+  ncm: formatarNcm,
+  cest: formatarCest,
 };
 
 export const formatar = (tipo: TipoMascara, valor: string | null | undefined) => FORMATADORES[tipo](valor ?? "");
@@ -96,6 +108,8 @@ export const TAMANHO_MAXIMO: Record<TipoMascara, number> = {
   rg: 14,
   cep: 9,
   telefone: 15,
+  ncm: 10,
+  cest: 9,
 };
 
 /** Teclado do celular: só números onde não há letras. */
@@ -106,6 +120,8 @@ export const TECLADO: Record<TipoMascara, "numeric" | "text" | "tel"> = {
   rg: "text", // RG pode terminar em X
   cep: "numeric",
   telefone: "tel",
+  ncm: "numeric",
+  cest: "numeric",
 };
 
 // ---- Validação (prévia na tela; o back-end valida de novo) ----
@@ -152,6 +168,10 @@ export function validar(tipo: TipoMascara, valor: string): string {
       return limpo.length >= 10 ? "" : "Telefone incompleto. Use DDD + número.";
     case "rg":
       return "";
+    case "ncm":
+      return limpo.length === 8 ? "" : "NCM inválido. Confira os 8 dígitos (ex.: 5608.19.00).";
+    case "cest":
+      return limpo.length === 7 ? "" : "CEST inválido. Confira os 7 dígitos (ex.: 01.020.00).";
   }
 }
 

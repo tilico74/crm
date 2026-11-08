@@ -16,7 +16,7 @@ Sempre que uma tela **mostra** ou **recebe** CPF, CNPJ, RG, CEP, telefone, celul
 
 ### Formulário (front-end)
 
-1. Use `MaskedField` (`frontend/src/components/form.tsx`) com `mascara="cpf" | "cnpj" | "cpfCnpj" | "rg" | "cep" | "telefone"`.
+1. Use `MaskedField` (`frontend/src/components/form.tsx`) com `mascara="cpf" | "cnpj" | "cpfCnpj" | "rg" | "cep" | "telefone" | "ncm" | "cest"`.
 2. O estado do formulário guarda o valor **limpo**: `value={dados.cpf}` e `onChange={(v) => set("cpf", v)}`.
 3. O campo já define o teclado do celular, o tamanho máximo e a validação ao sair do campo. Erros do servidor vêm em `error`.
 4. CEP: junte com a skill `preencher-endereco` (`onBlur` chama a consulta).

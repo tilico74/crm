@@ -51,6 +51,14 @@ describe("formatação", () => {
     expect(formatarRg("1234567890")).toBe("1234567890");
   });
 
+  it("NCM e CEST", () => {
+    expect(formatar("ncm", "56081900")).toBe("5608.19.00");
+    expect(formatar("cest", "0102000")).toBe("01.020.00");
+    expect(limpar("ncm", "5608.19.00")).toBe("56081900");
+    expect(validar("ncm", "5608")).toMatch(/8 dígitos/);
+    expect(validar("cest", "01.020.00")).toBe("");
+  });
+
   it("limpa para gravar", () => {
     expect(limpar("cpf", CPF)).toBe("52998224725");
     expect(limpar("cnpj", "12.abc.345/01de-35")).toBe("12ABC34501DE35");

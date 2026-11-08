@@ -6,7 +6,7 @@ saidas: modelo, migração, API REST com permissão e auditoria, testes e rota d
 ---
 # Criar a API de um módulo
 
-Modelos prontos para copiar: `backend/apps/usuarios/` (lista com ficha) e `backend/apps/core/empresa.py` + `backend/apps/vendas/views.py` (registro único).
+Modelos prontos para copiar: `backend/apps/usuarios/` (lista com ficha), `backend/apps/clientes/` (ficha com abas de linhas filhas gravadas junto, sem trocar IDs: `ClienteSerializer._gravar_abas`) e `backend/apps/core/empresa.py` + `backend/apps/vendas/views.py` (registro único).
 
 ## Peças prontas (use, não recrie)
 

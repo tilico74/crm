@@ -23,3 +23,6 @@ Thumbs.db
 
 # Arquivos enviados pelo sistema (logotipo etc.)
 backend/media/
+
+# Logs das cargas da MarketUP (têm dados pessoais)
+backend/logs/

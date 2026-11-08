@@ -41,21 +41,64 @@ Seções do formulário, nesta ordem:
 | --- | --- |
 | Ficha cadastral | Pessoa física ou jurídica · Tipo (lista de preços) · Bloqueado · Nome · Apelido · CPF · RG · Emissor · UF · Sexo (Masculino/Feminino) · Aniversário · Razão social · Nome fantasia · CNPJ · Indicador da IE do destinatário (Contribuinte do ICMS / Contribuinte isento de inscrição / Não contribuinte) · Inscrição estadual · Inscrição municipal · Telefone · Celular · Email · Site · Observação · Limite de crédito |
 | Dados fiscais | Email do destinatário da NF-e · ISS retido na fonte? · Consumidor final? · Produtor rural? |
-| Características | Nome (etiquetas livres) |
+| Características | Título das abas abaixo (não é um campo) |
 | Endereços | CEP · Endereço (ou no exterior) · Nº · Complemento · Bairro · Ativo · Padrão (vários por cliente) |
 | Contatos | Nome · Cargo · Telefone · Email (vários) |
-| Dados bancários | Banco (lista oficial de bancos) · Agência · Dígito · Conta · Dígito · Tipo |
-| Documentos | Tipo · Documento (anexos) |
-| Crédito | Limite, utilizado e disponível |
-| Histórico | Data · Descrição · Status (Pendente / Concluído) |
+| Dados bancários | Banco (lista oficial de bancos, 282) · Agência · Dígito · Conta · Dígito |
+| Documentos | Tipo (com "+") · Documento · anexo (ícone de envio) |
+| Crédito | Parcelas vencidas / a vencer / pagas · Total vencidas · Total a vencer · Total pagas · Limite de crédito · Limite utilizado · Limite disponível |
+| Histórico | Data · Descrição · Status (Pendente / Concluído). Orçamentos e pedidos entram sozinhos ("ORÇAMENTO Nº000826 · NOVO", "PEDIDO Nº… · CONCLUÍDO"), com a lupa abrindo o documento. Origens: orçamento −8, pedido 8, PDV 7, loja virtual 10; **OS não aparece**. Detalhes e plano no RDX: tarefa T206 |
 
 Botão no rodapé: "Adicionar pedido de venda".
+
+### Detalhes conferidos em 08/11/2026 (modelo Angular, `controller.currentClient.*`)
+
+| Campo na tela | Campo MarketUP | Tamanho | Campo RDX |
+| --- | --- | --- | --- |
+| Pessoa física ou jurídica | PersonEntityType | — | `tipo_pessoa` |
+| Tipo (Lista de Preços) | ClientType (1 = Padrão) | — | `lista_preco` |
+| Bloqueado | Blocked | — | `bloqueado` |
+| Nome / Razão Social | **OfficialName** (o mesmo campo) | 300 | `nome` |
+| Apelido / Nome Fantasia | **Name** (o mesmo campo) | 300 | `apelido` |
+| CPF · RG · Emissor · UF | Cpf · DocumentNumber · DocumentIssuer · DocumentState | 14 · 20 · 100 · 2 | `cpf`, `rg`, `rg_emissor`, `rg_uf` |
+| Sexo · Aniversário | PersonGender · Birthday | — | `sexo`, `aniversario` |
+| CNPJ · Indicador IE · IE · IM | Cnpj · IcmsContributorTypeID (1, 2, 3) · Ie · Im | 18 · — · 20 · 20 | `cnpj`, `indicador_ie`, `inscricao_estadual`, `inscricao_municipal` |
+| Telefone · Celular · Email · Site | Phone · Mobile · Email · Site | 15 · 15 · 254 · 64 | iguais |
+| Observação · Limite de Crédito | Observation · CreditLimit | 300 · — | `observacao`, `limite_credito` |
+| Dados fiscais | FiscalRecipientEmail · WithholdingIss · FinalConsumer · RuralProducer | 254 | `email_nfe`, `iss_retido`, `consumidor_final`, `produtor_rural` |
+
+- Pessoa física esconde Razão social, Nome fantasia, CNPJ, Indicador da IE, IE e IM; jurídica esconde CPF, RG, Emissor, UF, Sexo e Aniversário.
+- Endereço: Zipcode (9) · InExterior · Address (100) · Number (10) · Complement (50) · District (50) · IsActive · IsDefault.
+- Contato: Name (300) · Role (150) · Phone (15) · Email (254). Banco: BankID · AgencyNumber · AgencyDigit · AccountNumber · AccountDigit (20 cada).
+- Tipos de documento (DocumentTypeID): 6 Inscrição Estadual · 11 Inscrição Municipal · 12 Inscrição Estadual ST · 13 CNAE · 14 Suframa.
+- Histórico: Date · Observation (300) · HistoryStatus (1 Pendente, 2 Concluído).
+- Listagem: colunas Nome · Tipo · Telefone · Celular · Email; filtros Bloqueado · CPF · CNPJ · Tipo · Telefone · E-mail.
+- **Exportação da listagem** (`ListaClientes.xlsx`, 26 colunas): a coluna "Código Sistema" é o ClientID (conferido: cliente 109). Dá para migrar clientes mantendo o ID sem esperar a M002.
+
+## Lista de preços / Tipos de clientes (`client_type`)
+
+Descrição (Name, 300) · Desc. Varejo (Discount) e Desc. Atacado (WholesaleDiscount), cada um com botões **R$ / %** · "Itens com desconto diferenciado": Item (busca produto/serviço) · Desconto varejo · Desconto atacado (R$ / %). Só existe a lista "Padrão" (ID 1).
 
 ## Orçamento (`sale_budget`)
 
 - Listagem: número (= `SaleBudgetID`) com a situação embaixo, validade, entrega, data do pedido, cliente, data de emissão e valor.
-- Situações: **Novo, Pedido, Cancelado, Concluído**.
+- Situações (`Status`): **1 Novo, 3 Pedido, 4 Cancelado, 6 Concluído** (o orçamento que virou pedido fica Concluído, com `SaleOrderID` e "Ir para o pedido gerado").
 - Filtros: Status, Cliente, Data de emissão, Data de pedido, Data de validade, Produtos, Valor.
+
+### Ficha (`sale_budget/detail/{SaleBudgetID}`, conferida em 08/11/2026)
+
+| Seção | Campos |
+| --- | --- |
+| Orçamento | Quadro do status · # número · Comentários (ícone de balão → `Observation`) · Vendedor (`SellerID`) · Emissão · Validade · Entrega |
+| Cliente | Nome grande com "Crédito disponível" e lupa · CPF ou CNPJ · RG ou IE · E-mail · Telefone · Endereço para faturamento e Endereço de entrega (cartões dos endereços do cliente, com "+" para novo; `BillingAddressID`, `DeliveryAddressID`) |
+| Itens | Faixa azul "Digite o nome ou código do item · Qntd. (+/−) · Unitário · Total · Incluir no pedido" · tabela: código e descrição, balão de observação (medidas, ex.: "2,30 x 1,30"), quantidade + unidade, unitário, total, % (desconto do item), lixeira · "Imprimir etiquetas" · Subtotal · Desconto (R$ / %) · Frete · Outros custos · Total |
+| Pagamento | Forma de pagamento · Parcelamento · Valor · "Gerar contas" → parcelas (Vencimento, Observações, Valor) |
+
+Rodapé: Cancelar · Gerar pedido · Salvar · Salvar e voltar. Topo: listar, imprimir, e-mail, copiar, Adicionar novo.
+
+Modelo: `SaleBudget` (Subtotal, Discount, GeneralDiscount, GeneralDiscountPercentage, Shipping, GeneralTaxes = outros custos, Total, IssueDate, ExpirationDate, DeliveryDate, OrderingDate, CancelDate, NoClient) · `SaleBudgetItem` (ItemID, ItemUnitID, Amount, Value, Discount, DiscountPercentage, Subtotal, Total, InFragmentation, Observation, Order) · `SaleBudgetInstallment` (Date, Value, InstallmentNumber, InstallmentCount, Description, PaymentTypeID, PaymentConditionID).
+
+Exportação da listagem (`ListaOrcamentoVenda.xls`): só Número, Status (Aberto/Pedido/Cancelado/Concluído), Cliente (nome), Data emissão, Data de validade, Valor total. Sem itens, sem ID do cliente.
 
 ## Exportação
 

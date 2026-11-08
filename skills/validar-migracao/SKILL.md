@@ -6,6 +6,8 @@ saidas: relatório de conciliação (OK ou lista de divergências)
 ---
 # Validar migração
 
+Modelo de importador pronto: `backend/apps/migracao/management/commands/importar_clientes.py`. Ele já faz os passos 1, 2, 5 e o log do passo 6, e tem a opção `--simular` (lê e confere sem gravar). Rode sempre `--simular` antes.
+
 ## Passo a passo
 
 1. **Contagem:** o número de registros na exportação é igual ao número de registros na tabela.

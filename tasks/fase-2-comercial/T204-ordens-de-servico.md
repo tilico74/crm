@@ -21,6 +21,7 @@ OS com técnico, agenda, status, materiais e fotos; pensada para uso no celular 
 - [ ] Modelo e API
 - [ ] Telas mobile
 - [ ] Upload de fotos
+- [ ] Aparecer no Histórico do cliente (tarefa T206; extra do RDX, a MarketUP não mostra OS)
 
 ## Dúvidas
 

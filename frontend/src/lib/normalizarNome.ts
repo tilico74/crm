@@ -6,7 +6,7 @@ export const PARTICULAS = new Set(
   "a as com da das de del della di do dos du e em na nas no nos o os para por van von y".split(" "),
 );
 export const SIGLAS = new Set([
-  "CIA", "CNPJ", "CPF", "EIRELI", "EPI", "EPP", "LTDA", "ME", "MEI", "ONG", "RDX", "S.A.", "S/A", "SA",
+  "CIA", "CNPJ", "CPF", "EIRELI", "EPI", "EPP", "LTDA", "ME", "MEI", "ONG", "RDX", "S.A.", "S/A",
 ]);
 export const ROMANOS = new Set("I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX".split(" "));
 

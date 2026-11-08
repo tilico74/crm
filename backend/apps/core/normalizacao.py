@@ -10,7 +10,7 @@ PARTICULAS = frozenset(
     "a as com da das de del della di do dos du e em na nas no nos o os para por van von y".split()
 )
 SIGLAS = frozenset(
-    ["CIA", "CNPJ", "CPF", "EIRELI", "EPI", "EPP", "LTDA", "ME", "MEI", "ONG", "RDX", "S.A.", "S/A", "SA"]
+    ["CIA", "CNPJ", "CPF", "EIRELI", "EPI", "EPP", "LTDA", "ME", "MEI", "ONG", "RDX", "S.A.", "S/A"]
 )
 ROMANOS = frozenset(
     "I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX".split()

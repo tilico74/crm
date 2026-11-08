@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 
 import { cn } from "@/lib/utils";
@@ -9,10 +10,12 @@ type Props = {
   podeSalvar: boolean;
   salvando: boolean;
   onSalvarEVoltar: () => void;
+  /** Botões antes do Salvar (ex.: Cancelar e Gerar pedido do orçamento). */
+  extras?: ReactNode;
 };
 
 /** Aviso do resultado e barra de ações fixa embaixo (mesmo modelo da ficha de funcionário). */
-export function BarraAcoes({ voltar, aviso, erro, podeSalvar, salvando, onSalvarEVoltar }: Props) {
+export function BarraAcoes({ voltar, aviso, erro, podeSalvar, salvando, onSalvarEVoltar, extras }: Props) {
   return (
     <>
       {aviso && (
@@ -26,8 +29,17 @@ export function BarraAcoes({ voltar, aviso, erro, podeSalvar, salvando, onSalvar
           <Link to={voltar} className="mr-auto inline-flex min-h-12 items-center px-2 text-sm font-semibold uppercase text-primary hover:text-primary-dark">
             Voltar
           </Link>
+          {extras}
           {podeSalvar && (
             <>
+              {/* Ordem da MarketUP: Salvar e, depois, Salvar e voltar. */}
+              <button
+                type="submit"
+                disabled={salvando}
+                className="min-h-12 rounded-xs bg-primary px-6 text-sm font-bold uppercase text-primary-foreground hover:bg-primary-dark disabled:opacity-60"
+              >
+                {salvando ? "Salvando…" : "Salvar"}
+              </button>
               <button
                 type="button"
                 onClick={onSalvarEVoltar}
@@ -35,13 +47,6 @@ export function BarraAcoes({ voltar, aviso, erro, podeSalvar, salvando, onSalvar
                 className="min-h-12 rounded-xs border-2 border-primary px-4 text-sm font-bold uppercase text-primary hover:bg-primary-light disabled:opacity-60"
               >
                 Salvar e voltar
-              </button>
-              <button
-                type="submit"
-                disabled={salvando}
-                className="min-h-12 rounded-xs bg-primary px-6 text-sm font-bold uppercase text-primary-foreground hover:bg-primary-dark disabled:opacity-60"
-              >
-                {salvando ? "Salvando…" : "Salvar"}
               </button>
             </>
           )}

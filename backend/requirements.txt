@@ -19,6 +19,10 @@ celery[redis]~=5.5.0
 # Arquivos (S3 / MinIO)
 django-storages[s3]~=1.14
 
+# Migração da MarketUP: leitura das exportações .xlsx (M003)
+openpyxl~=3.1
+xlrd~=2.0  # exportações antigas em .xls (orçamentos, funcionários, serviços)
+
 # Servidor de produção
 gunicorn~=23.0
 

@@ -53,6 +53,8 @@ services:
     volumes:
       - ./backend:/app
       - ./skills/normalizar-nomes/casos.json:/casos/normalizar-nomes.json:ro
+      # Exportações da MarketUP para as cargas (M003), só leitura; a pasta não vai para o git.
+      - ./migracao/dados:/migracao/dados:ro
     command: >
       sh -c "python manage.py migrate --noinput &&
              python manage.py runserver 0.0.0.0:8000"

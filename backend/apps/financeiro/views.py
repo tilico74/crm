@@ -31,6 +31,7 @@ class BancoViewSet(viewsets.ReadOnlyModelViewSet):
     """Lista de bancos para o select da conta corrente; o cadastro é pelo admin."""
 
     funcionalidade = "contas_correntes"
+    funcionalidades_leitura = ["clientes"]  # aba Dados bancários da ficha do cliente
     permission_classes = AuditoriaViewSet.permission_classes
     queryset = Banco.objects.all()
     serializer_class = BancoSerializer
@@ -56,6 +57,7 @@ class ContaCorrenteViewSet(AuditoriaViewSet):
 
 class TipoPagamentoViewSet(AuditoriaViewSet):
     funcionalidade = "tipos_pagamento"
+    funcionalidades_leitura = ["orcamentos"]
     queryset = TipoPagamento.objects.prefetch_related("condicoes")
     serializer_class = TipoPagamentoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

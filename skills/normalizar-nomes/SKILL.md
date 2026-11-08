@@ -22,7 +22,7 @@ Em todo campo de **nome de pessoa** (cliente pessoa física, contato, funcionár
 3. Separe em palavras pelo espaço. Para cada palavra, na posição `i` (a primeira é 0):
    1. Separe pontuação final (`,` `;`) e devolva-a no fim.
    2. Código de rodovia (`letras-números`, ex.: `br-116`): tudo maiúsculo → `BR-116`.
-   3. Está na lista de **siglas** (comparando em maiúsculas): tudo maiúsculo → `LTDA`, `S/A`, `RDX`.
+   3. Está na lista de **siglas** (comparando em maiúsculas): tudo maiúsculo → `LTDA`, `S/A`, `RDX`. "SA" sem pontuação **não** é sigla: é sobrenome (`de Sa`), decisão de 08/11/2026.
    4. Não é a primeira palavra e está na lista de **romanos** (I a XX): tudo maiúsculo → `II`.
    5. Não é a primeira nem a última palavra e está na lista de **partículas**: tudo minúsculo → `da`, `dos`, `e`.
    6. Não é a primeira palavra e começa com `d'`: `d'` minúsculo e o resto capitalizado → `d'Água`.

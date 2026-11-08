@@ -7,15 +7,34 @@ type Props = {
   title: string;
   /** Barra de ferramentas; o link "ocultar" esconde e mostra. */
   children?: ReactNode;
+  /**
+   * Ícones da ficha, à direita do título (listar, imprimir, copiar, "Adicionar novo"),
+   * como no topo das fichas da MarketUP. Usado nas fichas, não nas listagens.
+   */
+  acoes?: ReactNode;
 };
 
 /**
  * Faixa de topo das telas no modelo MarketUP (context/design-system/layout-e-telas.md):
  * coluna de 992px; à esquerda (661px) módulo, título e ferramentas; à direita, o espaço
- * que na MarketUP é do anúncio e no RDX fica vazio.
+ * que na MarketUP é do anúncio e no RDX fica vazio. Com `acoes`, vira o topo compacto das fichas.
  */
-export function PageHeader({ eyebrow, title, children }: Props) {
+export function PageHeader({ eyebrow, title, children, acoes }: Props) {
   const [hidden, setHidden] = useState(false);
+
+  if (acoes) {
+    return (
+      <section className="bg-line">
+        <div className="mx-auto flex w-full max-w-[992px] flex-wrap items-center gap-4 px-4 py-5 xl:px-0">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold uppercase text-ink-muted">{eyebrow}</p>
+            <h1 className="text-xl font-bold uppercase leading-tight text-primary">{title}</h1>
+          </div>
+          <div className="flex items-center gap-1 border-l border-secondary-light pl-4">{acoes}</div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-line">

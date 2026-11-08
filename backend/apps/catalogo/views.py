@@ -23,7 +23,7 @@ EM_USO = "Está em uso no catálogo e não pode ser excluída."
 
 class UnidadeViewSet(AuditoriaViewSet):
     funcionalidade = "unidades"
-    funcionalidades_leitura = ["produtos", "servicos"]
+    funcionalidades_leitura = ["produtos", "servicos", "orcamentos"]
     queryset = Unidade.objects.all()
     serializer_class = UnidadeSerializer
     pagination_class = None
@@ -113,6 +113,7 @@ class SubcategoriaViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProdutoViewSet(AuditoriaViewSet):
     funcionalidade = "produtos"
+    funcionalidades_leitura = ["orcamentos", "listas_precos"]
     queryset = Produto.objects.select_related("unidade", "categoria", "subcategoria", "marca").prefetch_related(
         "composicao__item", "composicao__unidade"
     )
@@ -158,6 +159,7 @@ class ProdutoViewSet(AuditoriaViewSet):
 
 class ServicoViewSet(AuditoriaViewSet):
     funcionalidade = "servicos"
+    funcionalidades_leitura = ["orcamentos", "listas_precos"]
     queryset = Servico.objects.select_related("unidade")
     serializer_class = ServicoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

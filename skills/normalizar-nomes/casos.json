@@ -40,8 +40,7 @@
     "ONG",
     "RDX",
     "S.A.",
-    "S/A",
-    "SA"
+    "S/A"
   ],
   "romanos": [
     "I",
@@ -66,6 +65,10 @@
     "XX"
   ],
   "casos": [
+    {
+      "entrada": "Amanda terra de sa koerich",
+      "esperado": "Amanda Terra de Sa Koerich"
+    },
     {
       "entrada": "JOSÉ DA SILVA E SOUZA",
       "esperado": "José da Silva e Souza"

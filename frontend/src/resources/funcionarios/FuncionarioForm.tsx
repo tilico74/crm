@@ -206,19 +206,19 @@ export function FuncionarioForm() {
             {podeSalvar && (
               <>
                 <button
+                  type="submit"
+                  disabled={salvando}
+                  className="min-h-12 rounded-xs bg-primary px-6 text-sm font-bold uppercase text-primary-foreground hover:bg-primary-dark disabled:opacity-60"
+                >
+                  {salvando ? "Salvando…" : "Salvar"}
+                </button>
+                <button
                   type="button"
                   onClick={salvar(true)}
                   disabled={salvando}
                   className="min-h-12 rounded-xs border-2 border-primary px-4 text-sm font-bold uppercase text-primary hover:bg-primary-light disabled:opacity-60"
                 >
                   Salvar e voltar
-                </button>
-                <button
-                  type="submit"
-                  disabled={salvando}
-                  className="min-h-12 rounded-xs bg-primary px-6 text-sm font-bold uppercase text-primary-foreground hover:bg-primary-dark disabled:opacity-60"
-                >
-                  {salvando ? "Salvando…" : "Salvar"}
                 </button>
               </>
             )}

@@ -16,6 +16,13 @@ import { ProdutosList } from "./resources/catalogo/ProdutosList";
 import { ServicoForm } from "./resources/catalogo/ServicoForm";
 import { ServicosList } from "./resources/catalogo/ServicosList";
 import { UnidadesList } from "./resources/catalogo/UnidadesList";
+import { ClienteForm } from "./resources/clientes/ClienteForm";
+import { ClientesList } from "./resources/clientes/ClientesList";
+import { ListaPrecoForm } from "./resources/clientes/ListaPrecoForm";
+import { ListasPrecosList } from "./resources/clientes/ListasPrecosList";
+import { OrcamentoForm } from "./resources/orcamentos/OrcamentoForm";
+import { OrcamentoImpressao } from "./resources/orcamentos/OrcamentoImpressao";
+import { OrcamentosList } from "./resources/orcamentos/OrcamentosList";
 import { InformacoesEmpresa } from "./resources/empresa/InformacoesEmpresa";
 import { ParametrosVenda } from "./resources/empresa/ParametrosVenda";
 import { ContaGerencialForm } from "./resources/financeiro/ContaGerencialForm";
@@ -57,6 +64,14 @@ export default function App() {
                 <Route path="categorias" element={<CategoriasList />} />
                 <Route path="categorias/:id" element={<CategoriaForm />} />
               </Route>
+              <Route path="vendas">
+                <Route path="clientes" element={<ClientesList />} />
+                <Route path="clientes/:id" element={<ClienteForm />} />
+                <Route path="listas-de-precos" element={<ListasPrecosList />} />
+                <Route path="listas-de-precos/:id" element={<ListaPrecoForm />} />
+                <Route path="orcamentos" element={<OrcamentosList />} />
+                <Route path="orcamentos/:id" element={<OrcamentoForm />} />
+              </Route>
               <Route path="ajustes">
                 <Route path="funcionarios" element={<FuncionariosList />} />
                 <Route path="funcionarios/:id" element={<FuncionarioForm />} />
@@ -72,6 +87,17 @@ export default function App() {
               </Route>
               {/* Cada módulo ganha sua rota ao ser construído; até lá, página provisória. */}
               <Route path="*" element={<EmConstrucao />} />
+            </Route>
+
+            {/* Impressões: fora do layout (sem menus), em A4. */}
+            <Route
+              element={
+                <Authenticated key="impressao" fallback={<Navigate to="/login" replace />}>
+                  <Outlet />
+                </Authenticated>
+              }
+            >
+              <Route path="vendas/orcamentos/:id/imprimir" element={<OrcamentoImpressao />} />
             </Route>
 
             <Route

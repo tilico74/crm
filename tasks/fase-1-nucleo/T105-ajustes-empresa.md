@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Em andamento |
+| Status | Concluída |
 | Depende de | T101, T104 |
 | Skills | `criar-tela-formulario`, `normalizar-nomes`, `revisar-acessibilidade-mobile` |
 | Contexto | `context/marketup/telas-e-entidades.md` (seção Ajustes) |
@@ -20,11 +20,17 @@ Telas Ajustes › Empresa › Informações da empresa e Parâmetros de venda, c
 
 ## Checklist
 
-- [ ] Modelos, API e testes
-- [ ] Tela Informações da empresa
-- [ ] Tela Parâmetros de venda
+- [x] Modelos, API e testes
+- [x] Tela Informações da empresa
+- [x] Tela Parâmetros de venda
 
 ## Dúvidas
 
 - [ ] Domínio (endereço na MarketUP) e "Acesso com Google" não se aplicam ao RDX; ficam fora.
 - [ ] Certificado digital entra com a T401 (notas fiscais).
+
+## Observações
+
+- Back-end: `backend/apps/core/models.py` (`Empresa`, `EnderecoEmpresa` com código IBGE), `backend/apps/core/empresa.py` (`/api/empresa`, `/api/empresa/logotipo`), `backend/apps/vendas/` (`ParametrosVenda`, `/api/parametros-venda`). Registro único (id = 1), criado na primeira leitura; parâmetros começam com os valores da RDX na MarketUP.
+- Telas: `frontend/src/resources/empresa/`. Endereços com `CepField` e `EnderecoField` (ADR-006); CNPJ e telefones com `MaskedField` (T108).
+- Testes: `backend/tests/test_ajustes_empresa.py`.

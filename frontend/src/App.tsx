@@ -10,6 +10,11 @@ import { authProvider, dataProvider } from "./app/providers";
 import { ThemeProvider } from "./app/theme";
 import { InformacoesEmpresa } from "./resources/empresa/InformacoesEmpresa";
 import { ParametrosVenda } from "./resources/empresa/ParametrosVenda";
+import { ContaGerencialForm } from "./resources/financeiro/ContaGerencialForm";
+import { ContasCorrentesList } from "./resources/financeiro/ContasCorrentesList";
+import { ContasGerenciaisList } from "./resources/financeiro/ContasGerenciaisList";
+import { TipoPagamentoForm } from "./resources/financeiro/TipoPagamentoForm";
+import { TiposPagamentoList } from "./resources/financeiro/TiposPagamentoList";
 import { FuncionarioForm } from "./resources/funcionarios/FuncionarioForm";
 import { FuncionariosList } from "./resources/funcionarios/FuncionariosList";
 import { Permissoes } from "./resources/permissoes/Permissoes";
@@ -40,6 +45,11 @@ export default function App() {
                 <Route path="permissoes" element={<Permissoes />} />
                 <Route path="empresa" element={<InformacoesEmpresa />} />
                 <Route path="parametros-de-venda" element={<ParametrosVenda />} />
+                <Route path="contas-gerenciais" element={<ContasGerenciaisList />} />
+                <Route path="contas-gerenciais/:id" element={<ContaGerencialForm />} />
+                <Route path="contas-correntes" element={<ContasCorrentesList />} />
+                <Route path="tipos-de-pagamento" element={<TiposPagamentoList />} />
+                <Route path="tipos-de-pagamento/:id" element={<TipoPagamentoForm />} />
               </Route>
               {/* Cada módulo ganha sua rota ao ser construído; até lá, página provisória. */}
               <Route path="*" element={<EmConstrucao />} />

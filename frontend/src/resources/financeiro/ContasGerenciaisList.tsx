@@ -36,7 +36,8 @@ export function ContasGerenciaisList() {
   const { result, query } = useList<ContaGerencial>({
     resource: "contas-gerenciais",
     pagination: { currentPage: 1, pageSize },
-    sorters: [{ field: "codigo_referencia", order: "asc" }],
+    // Ordem da MarketUP: alfabética pelo nome.
+    sorters: [{ field: "nome", order: "asc" }],
     filters: [{ field: "q", operator: "eq", value: termo }],
   });
 

@@ -19,6 +19,8 @@ Endereços: interface em http://localhost:5174, API em http://localhost:8000/api
 
 Criar o primeiro usuário do painel: `docker compose exec backend python manage.py createsuperuser`.
 
+Carregar ou atualizar a lista oficial de bancos (Ajustes › Conta corrente): `docker compose exec backend python manage.py carregar_bancos`.
+
 ## Serviços
 
 | Serviço | Imagem / origem | Função |

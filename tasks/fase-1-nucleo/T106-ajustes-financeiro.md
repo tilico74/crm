@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Em andamento |
+| Status | Concluída |
 | Depende de | T101 |
 | Skills | `criar-api-modulo`, `criar-tela-listagem`, `criar-tela-formulario`, `mapear-entidade-marketup`, `revisar-acessibilidade-mobile` |
 | Contexto | `context/marketup/telas-e-entidades.md` (seções Ajustes e "Ajustes › Financeiro em detalhe") |
@@ -21,10 +21,17 @@ Cadastros financeiros da MarketUP que o módulo Financeiro (T302) vai usar.
 
 ## Checklist
 
-- [ ] Modelos, API e testes
-- [ ] Telas
+- [x] Modelos, API e testes
+- [x] Telas
 
 ## Dúvidas
 
-- [ ] Lista de bancos: a MarketUP tem a lista oficial (endpoint `Bank`). Carregar na migração ou de uma fonte pública?
+- [x] Lista de bancos: carregada da lista oficial do Banco Central (BrasilAPI) pelo comando `carregar_bancos`; chave = código de compensação com 3 dígitos ("001"), o mesmo da MarketUP. A conta corrente migrada liga ao banco por esse código.
 - [ ] "Utiliza no PDV?" do tipo de pagamento ficou fora (PDV fora do escopo).
+
+## Observações
+
+- Back-end: `backend/apps/financeiro/` (`ContaGerencial`, `Banco`, `ContaCorrente`, `TipoPagamento` + `CondicaoPagamento`). API: `/api/contas-gerenciais`, `/api/bancos`, `/api/contas-correntes` (uma conta principal por vez), `/api/tipos-pagamento` (condições gravadas junto). Contas do sistema não podem ser excluídas.
+- Bancos: `docker compose exec backend python manage.py carregar_bancos` (461 bancos; pode rodar de novo para atualizar).
+- Telas (`frontend/src/resources/financeiro/`): Conta gerencial (lista em ordem de nome + ficha; DRE muda conforme Saída/Entrada), Conta corrente (edição na própria linha, Enter confirma, Esc cancela), Tipo de pagamento (lista + ficha com a tabela de condições editável na linha). Conferidas no Chrome em 08/11/2026; registros de teste apagados.
+- Sem dados iniciais de contas e tipos: vêm da migração da MarketUP, com os IDs dela.

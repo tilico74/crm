@@ -171,3 +171,25 @@ def test_fim_de_contrato_antes_do_inicio(admin):
     )
     assert resposta.status_code == 400
     assert "fim_contrato" in resposta.data
+
+
+@pytest.mark.django_db
+def test_carregar_bancos_usa_codigo_de_3_digitos_e_atualiza(monkeypatch):
+    from django.core.management import call_command
+
+    from apps.financeiro.management.commands import carregar_bancos
+
+    lista = [
+        {"code": 1, "fullName": "Banco do Brasil S.A.", "name": "BCO DO BRASIL S.A."},
+        {"code": None, "fullName": "Banco Central do Brasil - Selic", "name": "Selic"},
+        {"code": 260, "fullName": "NU PAGAMENTOS S.A.", "name": "NU PAGAMENTOS - IP"},
+    ]
+    monkeypatch.setattr(carregar_bancos, "buscar_json", lambda url: lista)
+    call_command("carregar_bancos")
+    lista[0]["fullName"] = "Banco do Brasil"
+    call_command("carregar_bancos")
+
+    from apps.financeiro.models import Banco
+
+    assert sorted(Banco.objects.values_list("codigo", flat=True)) == ["001", "260"]
+    assert Banco.objects.get(codigo="001").nome == "Banco do Brasil"

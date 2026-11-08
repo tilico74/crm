@@ -58,7 +58,7 @@ class Banco(ModeloBase):
     """Lista oficial de bancos (endpoint Bank da MarketUP)."""
 
     codigo = models.CharField("código", max_length=10, unique=True)
-    nome = models.CharField("nome", max_length=120)
+    nome = models.CharField("nome", max_length=200)
 
     class Meta:
         db_table = "banco"

@@ -28,8 +28,8 @@ Uma tarefa por arquivo, agrupadas por fase. A base tecnológica foi instalada na
 | T102 | [Clientes](fase-1-nucleo/T102-clientes.md) | A fazer | T101, T104, M001 |
 | T103 | [Catálogo](fase-1-nucleo/T103-catalogo.md) | A fazer | T101, M001 |
 | T104 | [Normalização de nomes](fase-1-nucleo/T104-normalizacao-de-nomes.md) | Em andamento | T003, T004 |
-| T105 | [Ajustes › Empresa](fase-1-nucleo/T105-ajustes-empresa.md) | Em andamento | T101, T104 |
-| T106 | [Ajustes › Financeiro](fase-1-nucleo/T106-ajustes-financeiro.md) | Em andamento | T101 |
+| T105 | [Ajustes › Empresa](fase-1-nucleo/T105-ajustes-empresa.md) | Concluída | T101, T104 |
+| T106 | [Ajustes › Financeiro](fase-1-nucleo/T106-ajustes-financeiro.md) | Concluída | T101 |
 | T107 | [Localidades: CEP e IBGE](fase-1-nucleo/T107-localidades-cep-ibge.md) | Concluída | T003 |
 | T108 | [Máscaras e formatos](fase-1-nucleo/T108-mascaras-e-formatos.md) | Concluída | T003, T004 |
 | T201 | [CRM](fase-2-comercial/T201-crm.md) | A fazer | T102 |

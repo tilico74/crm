@@ -187,3 +187,11 @@ Valores atuais da RDX (leitura das telas; conferir na T202):
 ### Migrar Dados (`configuration/integration/migratedata`)
 
 Importa **para** a MarketUP a partir do ContaAzul (ligado) e do Bling. Não exporta; não serve para a migração do RDX.
+
+## Exportações das telas (o que trazem)
+
+### Funcionários (`ListaFuncionarios.xls`, baixado em 07/11/2026)
+
+22 colunas: Código · Nome/Razão Social · Apelido/Nome fantasia · Sexo (M ou F) · CPF · RG · Expedição RG · UF do RG · CNPJ · IE · Telefone · Celular · Fax · Email · Site · Endereço · Número · Complemento · Bairro · Cidade · Estado · CEP.
+
+**Não traz o `EmployeeID`** (o ID que aparece em `employee/detail/{id}`), nem login, perfil, "Vendedor?" ou comissão. "Código" é um campo livre, preenchido em poucos registros. **A exportação da tela não basta para manter os IDs**: depende do pedido formal da base completa (M002).

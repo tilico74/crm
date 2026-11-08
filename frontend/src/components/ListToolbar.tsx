@@ -1,11 +1,14 @@
 import { IconCloudDownload, IconFilter, IconListDetails, IconPrinter, IconUpload } from "@tabler/icons-react";
-import { useId } from "react";
+import { useEffect, useId, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
 type Props = {
   /** Tela ainda sem dados: os controles aparecem, mas não fazem nada. */
   preview?: boolean;
+  /** Busca "Localizar por": chamada 300 ms depois de parar de digitar. */
+  onSearch?: (termo: string) => void;
+  /** Sem `onAdd` (ou sem permissão de adicionar), o "Adicionar novo" não aparece. */
   onAdd?: () => void;
 };
 
@@ -21,9 +24,17 @@ const ACTIONS = [
  * busca "Localizar por" com 4 filtros, 4 blocos de 76×76 e "Adicionar novo" de 152×152.
  * No celular os blocos ficam em linha e o "Adicionar novo" vai para baixo, fixo.
  */
-export function ListToolbar({ preview, onAdd }: Props) {
+export function ListToolbar({ preview, onSearch, onAdd }: Props) {
   const searchId = useId();
-  const off = preview ? { "aria-disabled": true, title: "Em construção" } : {};
+  const [termo, setTermo] = useState("");
+  // Blocos ainda sem função (filtros, importar, imprimir, exportar) entram com cada módulo.
+  const off = { "aria-disabled": true, title: "Em construção" } as const;
+
+  useEffect(() => {
+    if (!onSearch) return;
+    const t = window.setTimeout(() => onSearch(termo.trim()), 300);
+    return () => window.clearTimeout(t);
+  }, [termo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex flex-col gap-[2px] md:h-[152px] md:flex-row">
@@ -34,6 +45,9 @@ export function ListToolbar({ preview, onAdd }: Props) {
         <input
           id={searchId}
           type="search"
+          value={termo}
+          onChange={(e) => setTermo(e.target.value)}
+          disabled={preview}
           placeholder="Buscar termo"
           className="mt-1 h-12 w-full border-b border-line bg-transparent px-3 text-base text-ink placeholder:text-ink-muted focus:outline-none focus-visible:border-brand-cyan md:h-9 md:text-sm"
         />
@@ -65,7 +79,6 @@ export function ListToolbar({ preview, onAdd }: Props) {
             type="button"
             {...off}
             aria-label={label}
-            title={preview ? "Em construção" : label}
             className="flex h-[60px] items-center justify-center bg-surface-raised text-primary hover:bg-primary-light md:size-[76px]"
           >
             <Icon size={36} stroke={1.5} aria-hidden />
@@ -73,19 +86,21 @@ export function ListToolbar({ preview, onAdd }: Props) {
         ))}
       </div>
 
-      <button
-        type="button"
-        onClick={preview ? undefined : onAdd}
-        {...off}
-        aria-label="Adicionar novo"
-        className={cn(
-          "fixed inset-x-0 bottom-0 z-10 flex h-14 items-center justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary-dark",
-          "md:static md:size-[152px] md:flex-col md:gap-0",
-        )}
-      >
-        <span className="text-sm font-bold uppercase">Adicionar</span>
-        <span className="text-sm font-bold uppercase md:text-2xl">Novo</span>
-      </button>
+      {(preview || onAdd) && (
+        <button
+          type="button"
+          onClick={preview ? undefined : onAdd}
+          {...(preview ? off : {})}
+          aria-label="Adicionar novo"
+          className={cn(
+            "fixed inset-x-0 bottom-0 z-10 flex h-14 items-center justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary-dark",
+            "md:static md:size-[152px] md:flex-col md:gap-0",
+          )}
+        >
+          <span className="text-sm font-bold uppercase">Adicionar</span>
+          <span className="text-sm font-bold uppercase md:text-2xl">Novo</span>
+        </button>
+      )}
     </div>
   );
 }

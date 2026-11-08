@@ -1,0 +1,34 @@
+export type Funcionario = {
+  id: number;
+  tipo_pessoa: "F" | "J";
+  codigo: string;
+  terceiro: boolean;
+  bloqueado: boolean;
+  nome: string;
+  apelido: string;
+  cpf: string;
+  rg: string;
+  rg_emissor: string;
+  rg_uf: string;
+  sexo: "" | "M" | "F";
+  aniversario: string | null;
+  razao_social: string;
+  nome_fantasia: string;
+  cnpj: string;
+  inscricao_estadual: string;
+  inscricao_municipal: string;
+  telefone: string;
+  celular: string;
+  email: string;
+  site: string;
+  observacao: string;
+  login: string;
+  senha?: string;
+  grupo: number | null;
+  grupo_nome: string | null;
+  comprador: boolean;
+  vendedor: boolean;
+  comissao: string;
+};
+
+export type Grupo = { id: number; nome: string; ativo: boolean; usuarios: number };

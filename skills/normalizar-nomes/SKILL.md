@@ -9,6 +9,8 @@ saidas: texto padronizado
 Regra de negócio: `context/regras-de-negocio/padronizacao-de-nomes.md`.
 Casos de teste oficiais: `casos.json`, nesta pasta. Também traz as listas de partículas, siglas e romanos.
 
+Implementações (T104): back-end `backend/apps/core/normalizacao.py` (`normalizar_nome`, usada ao gravar) e front-end `frontend/src/lib/normalizarNome.ts` (`normalizarNome`, só prévia). Os testes das duas leem este `casos.json`, montado só para leitura em `/casos/normalizar-nomes.json` pelo `docker-compose.yml`.
+
 ## Quando usar
 
 Em todo campo de nome de pessoa, razão social, nome fantasia, logradouro, bairro, cidade e complemento, ao **criar, editar ou importar**. Nunca em e-mail, UF, documentos, telefone, descrições de produto ou textos livres.

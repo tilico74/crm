@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { Outlet } from "react-router";
+import { Outlet, useLocation } from "react-router";
 
+import { PageHeader } from "@/components/PageHeader";
+
+import { useMe } from "../useMe";
 import { SideNav } from "./SideNav";
 import { TopBar } from "./TopBar";
 
@@ -20,8 +23,24 @@ export function AppShell() {
       <SideNav open={menuOpen} onOpenChange={setMenuOpen} />
       {/* pb-20 no celular: espaço para o botão principal fixo embaixo. */}
       <main id="conteudo" className="pb-20 pt-16 md:pb-0 lg:pl-[88px]">
-        <Outlet />
+        <RotaPermitida />
       </main>
     </div>
+  );
+}
+
+/** Tela sem permissão de acesso (endereço digitado direto) mostra aviso em vez do conteúdo. */
+function RotaPermitida() {
+  const { pathname } = useLocation();
+  const { me, pode } = useMe();
+  if (!me) return null;
+  if (pode(pathname)) return <Outlet />;
+  return (
+    <>
+      <PageHeader eyebrow="RDX" title="Sem permissão" />
+      <p className="mx-auto max-w-[992px] px-4 py-10 text-ink-muted xl:px-0">
+        Seu grupo não tem acesso a esta tela. Peça ao administrador para liberar em Ajustes › Permissões.
+      </p>
+    </>
   );
 }

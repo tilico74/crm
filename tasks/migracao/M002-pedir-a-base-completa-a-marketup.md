@@ -18,7 +18,7 @@ Solicitar formalmente a exportação completa dos dados (portabilidade, LGPD art
 ## Checklist
 
 - [ ] Pedido enviado
-- [ ] Exportações das telas baixadas
+- [ ] Exportações das telas baixadas (Funcionários: feito em 07/11/2026, sem o ID; faltam Clientes, Produtos, Serviços, Orçamentos)
 - [ ] Conferir contrato e aviso prévio
 
 ## Dúvidas

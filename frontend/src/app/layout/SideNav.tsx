@@ -1,10 +1,12 @@
+import { useGetIdentity } from "@refinedev/core";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 
+import type { Me } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-import { findMenuItem, MENU, type MenuGroup } from "../menu";
+import { findMenuItem, menuPermitido, type MenuGroup } from "../menu";
 
 type Props = { open: boolean; onOpenChange: (open: boolean) => void };
 
@@ -26,7 +28,9 @@ export function SideNav({ open, onOpenChange }: Props) {
   const { pathname } = useLocation();
   const [selected, setSelected] = useState<string | null>(null);
   const currentGroup = findMenuItem(pathname)?.group.id;
-  const selectedGroup = MENU.find((g) => g.id === selected);
+  const { data: me } = useGetIdentity<Me>();
+  const menu = menuPermitido(me?.permissoes);
+  const selectedGroup = menu.find((g) => g.id === selected);
 
   const close = () => {
     setSelected(null);
@@ -102,7 +106,7 @@ export function SideNav({ open, onOpenChange }: Props) {
             open ? "w-[min(320px,85vw)] px-5 lg:w-[230px]" : "w-[88px] items-center",
           )}
         >
-          {MENU.map((group) => {
+          {menu.map((group) => {
             const Icon = group.icon;
             const isCurrent = currentGroup === group.id;
             const isSelected = selected === group.id;

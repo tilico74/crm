@@ -48,6 +48,11 @@ services:
 
   backend:
     <<: *backend
+    # Casos oficiais de skills/normalizar-nomes, só leitura, para os testes (T104).
+    # Repete ./backend:/app porque "volumes" aqui substitui o da âncora.
+    volumes:
+      - ./backend:/app
+      - ./skills/normalizar-nomes/casos.json:/casos/normalizar-nomes.json:ro
     command: >
       sh -c "python manage.py migrate --noinput &&
              python manage.py runserver 0.0.0.0:8000"
@@ -70,6 +75,8 @@ services:
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
+      # Mesmos casos de teste do back-end (T104).
+      - ./skills/normalizar-nomes/casos.json:/casos/normalizar-nomes.json:ro
     ports:
       - "${FRONTEND_PORT:-5174}:5173"
     depends_on:

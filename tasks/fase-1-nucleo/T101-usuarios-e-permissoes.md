@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | A fazer |
+| Status | Concluída |
 | Depende de | T003, T004 |
 | Skills | — |
 | Contexto | `context/00-visao-geral.md` |
@@ -19,9 +19,9 @@ Login, perfis (admin, vendedor, financeiro, técnico) e permissões por módulo.
 
 ## Checklist
 
-- [ ] Modelo de usuário e perfil
-- [ ] Tela de login
-- [ ] Gestão de usuários
+- [x] Modelo de usuário e perfil
+- [x] Tela de login
+- [x] Gestão de usuários
 
 ## Dúvidas
 
@@ -31,3 +31,13 @@ Login, perfis (admin, vendedor, financeiro, técnico) e permissões por módulo.
   - **Decidido (07/11/2026):** sim, igual à MarketUP.
 - [x] Permissões por funcionalidade com Acessar/Adicionar/Alterar/Excluir, como na MarketUP (`context/marketup/telas-e-entidades.md`, seção Ajustes)?
   - **Decidido (07/11/2026):** sim, mesma matriz.
+
+## Observações
+
+- **Back-end** (`backend/apps/usuarios/`): `Funcionario` (ficha da MarketUP, com nome padronizado ao gravar), `Usuario` (login, ligado ao funcionário e a um `Grupo`), `Funcionalidade` e `PermissaoGrupo` (matriz acessar/adicionar/alterar/excluir). Grupos e funcionalidades criados pela migração `0003`; só o Administrador nasce com acesso.
+- **Auditoria:** `apps/core/models.py` (`ModeloBase`: criado/atualizado em e por) e `apps/core/api.py` (`AuditoriaViewSet` grava o usuário; `PermissaoFuncionalidade` confere a matriz em toda chamada).
+- **API:** `/api/auth/token/`, `/api/auth/me`, `/api/funcionarios`, `/api/grupos`, `/api/grupos/{id}/permissoes`, `/api/funcionalidades`.
+- **Telas:** login; Ajustes › Funcionários (lista e ficha); Ajustes › Usuários (funcionários com login); Ajustes › Permissões (grupos e matriz). O menu e os botões seguem as permissões; endereço sem permissão mostra "Sem permissão".
+- Excluir funcionário desativa o login (não apaga, para manter o histórico). Grupo com usuários não pode ser excluído.
+- **Fica para depois:** as seções Características, Endereços, Contatos, Dados bancários e Documentos da ficha entram com a T102 (são as mesmas do cliente). A tela "Usuários" da MarketUP não foi conferida (o navegador caiu); a do RDX lista os funcionários com login.
+- **Migração:** a exportação de Funcionários da MarketUP não traz o EmployeeID (ver M001/M002).

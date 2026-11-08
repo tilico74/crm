@@ -1,6 +1,9 @@
-import { IconBell, IconChevronDown, IconMenu2, IconMoon, IconSearch, IconSun } from "@tabler/icons-react";
+import { useGetIdentity, useLogout } from "@refinedev/core";
+import { IconBell, IconChevronDown, IconLogout, IconMenu2, IconMoon, IconSearch, IconSun } from "@tabler/icons-react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 
+import type { Me } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 import { useTheme } from "../theme";
@@ -54,18 +57,76 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
           <IconBell size={22} aria-hidden />
         </button>
 
-        {/* Usuário logado entra na T101; por enquanto mostra só a empresa. */}
-        <button type="button" className="flex h-12 items-center gap-3 rounded-xs px-2 hover:bg-shell-hover" aria-label="Conta">
-          <span className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-            RD
-          </span>
-          <span className="hidden flex-col items-start leading-tight lg:flex">
-            <span className="text-[10px] font-bold uppercase text-shell-muted">RDX Redes de Proteção</span>
-            <span className="text-sm font-semibold">Usuário</span>
-          </span>
-          <IconChevronDown size={20} aria-hidden className="hidden lg:block" />
-        </button>
+        <ContaMenu />
       </div>
     </header>
+  );
+}
+
+const iniciais = (nome: string) =>
+  nome
+    .split(/\s+/)
+    .filter((p) => p.length > 2)
+    .slice(0, 2)
+    .map((p) => p[0].toUpperCase())
+    .join("") || nome.slice(0, 2).toUpperCase();
+
+/** Bloco do usuário logado, com o menu "Sair" (como o da MarketUP). */
+function ContaMenu() {
+  const { data: me } = useGetIdentity<Me>();
+  const { mutate: logout } = useLogout();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const nome = me?.nome ?? "";
+
+  useEffect(() => {
+    if (!open) return;
+    const fora = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", fora);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("mousedown", fora);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={`Conta de ${nome}`}
+        className="flex h-12 items-center gap-3 rounded-xs px-2 hover:bg-shell-hover"
+      >
+        <span className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+          {iniciais(nome)}
+        </span>
+        <span className="hidden max-w-[180px] flex-col items-start leading-tight lg:flex">
+          <span className="text-[10px] font-bold uppercase text-shell-muted">RDX Redes de Proteção</span>
+          <span className="truncate text-sm font-semibold">{nome}</span>
+        </span>
+        <IconChevronDown size={20} aria-hidden className="hidden lg:block" />
+      </button>
+
+      {open && (
+        <div role="menu" className="absolute right-0 top-full mt-1 w-56 rounded-xs border border-line bg-surface-raised py-1 text-ink shadow-lg">
+          <p className="px-4 py-2 text-xs text-ink-muted">
+            {me?.grupo ?? (me?.is_superuser ? "Administrador do sistema" : "Sem grupo")}
+          </p>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => logout()}
+            className="flex min-h-12 w-full items-center gap-2 px-4 text-left text-sm font-semibold hover:bg-primary-light"
+          >
+            <IconLogout size={20} aria-hidden />
+            Sair
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

@@ -130,3 +130,60 @@ export function findMenuItem(pathname: string): { group: MenuGroup; link?: MenuL
   }
   return undefined;
 }
+
+/** Funcionalidade da matriz de permissões que libera cada rota (codigos do back-end). */
+const FUNCIONALIDADE_POR_ROTA: Record<string, string> = {
+  "/catalogo/produtos": "produtos",
+  "/catalogo/servicos": "servicos",
+  "/catalogo/categorias": "categorias",
+  "/catalogo/marcas": "marcas",
+  "/catalogo/unidades": "unidades",
+  "/vendas/orcamentos": "orcamentos",
+  "/vendas/pedidos": "pedidos",
+  "/vendas/clientes": "clientes",
+  "/vendas/crm": "crm",
+  "/vendas/comissoes": "comissoes_lancamento",
+  "/vendas/listas-de-precos": "listas_precos",
+  "/vendas/ordens-de-servico": "ordens_servico",
+  "/estoque/consulta": "consulta_estoque",
+  "/estoque/movimentacoes": "movimentacoes_estoque",
+  "/estoque/locais": "locais_estoque",
+  "/estoque/tipos-de-estocagem": "tipos_estocagem",
+  "/estoque/motivos": "motivos_movimentacao",
+  "/notas/emitir": "notas_fiscais",
+  "/notas/recebidas": "notas_fiscais",
+  "/notas/emitidas": "notas_fiscais",
+  "/financeiro/fluxo-de-caixa": "fluxo_caixa",
+  "/financeiro/movimentacao-de-caixa": "movimentacao_caixa",
+  "/financeiro/contas-a-pagar": "contas_pagar",
+  "/financeiro/contas-a-receber": "contas_receber",
+  "/relatorios": "relatorios",
+  "/ajustes/empresa": "empresa",
+  "/ajustes/funcionarios": "funcionarios",
+  "/ajustes/usuarios": "funcionarios",
+  "/ajustes/parametros-de-venda": "parametros_venda",
+  "/ajustes/permissoes": "permissoes",
+  "/ajustes/contas-gerenciais": "contas_gerenciais",
+  "/ajustes/contas-correntes": "contas_correntes",
+  "/ajustes/tipos-de-pagamento": "tipos_pagamento",
+};
+
+export type Permissoes = Record<string, string[]>;
+
+/** A pessoa pode fazer `acao` na rota? Rotas sem funcionalidade (Início) são livres. */
+export function pode(permissoes: Permissoes | undefined, path: string, acao = "acessar"): boolean {
+  const codigo = FUNCIONALIDADE_POR_ROTA[path.replace(/\/(novo|\d+)$/, "")];
+  if (!codigo) return true;
+  return permissoes?.[codigo]?.includes(acao) ?? false;
+}
+
+/** Menu só com o que a pessoa pode acessar; grupos sem itens somem. */
+export function menuPermitido(permissoes: Permissoes | undefined): MenuGroup[] {
+  return MENU.flatMap((group) => {
+    if (group.path) return pode(permissoes, group.path) ? [group] : [];
+    const sections = group.sections
+      .map((s) => ({ ...s, links: s.links.filter((l) => pode(permissoes, l.path)) }))
+      .filter((s) => s.links.length > 0);
+    return sections.length ? [{ ...group, sections }] : [];
+  });
+}

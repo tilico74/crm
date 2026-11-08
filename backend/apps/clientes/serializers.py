@@ -177,9 +177,12 @@ class ClienteSerializer(serializers.ModelSerializer):
         read_only_fields = ["criado_em", "atualizado_em"]
 
     def get_credito(self, cliente):
-        # Aba Crédito. "Utilizado" vem das parcelas a receber em aberto (contas a receber, fase 3);
-        # até lá é zero e o disponível é o próprio limite.
-        utilizado = 0
+        # Aba Crédito. "Utilizado" = saldo das contas a receber em aberto do cliente (pedidos concluídos).
+        from django.db.models import Sum
+
+        from apps.financeiro.models import ContaReceber
+
+        utilizado = ContaReceber.objects.filter(cliente=cliente, cancelada=False, saldo__gt=0).aggregate(s=Sum("saldo"))["s"] or 0
         return {"limite": cliente.limite_credito, "utilizado": utilizado, "disponivel": cliente.limite_credito - utilizado}
 
     def validate(self, attrs):

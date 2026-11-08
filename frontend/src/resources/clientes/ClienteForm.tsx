@@ -1,6 +1,6 @@
-import { IconFileText, IconPlus, IconUpload } from "@tabler/icons-react";
+import { IconFileText, IconPlus, IconSearch, IconUpload } from "@tabler/icons-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 
 import { useMe } from "@/app/useMe";
 import { CepField } from "@/components/CepField";
@@ -13,6 +13,8 @@ import { formatarCep, formatarData, formatarMoeda, formatarTelefone, limpar, typ
 import { normalizarNome } from "@/lib/normalizarNome";
 import { cn } from "@/lib/utils";
 import { BarraAcoes } from "@/resources/financeiro/BarraAcoes";
+import { ROTA_ORCAMENTOS } from "@/resources/orcamentos/OrcamentosList";
+import { ROTA_PEDIDOS } from "@/resources/pedidos/types";
 
 import { AbaLista, OnOff } from "./AbaLista";
 import { ROTA_CLIENTES as ROTA } from "./ClientesList";
@@ -57,6 +59,16 @@ const ENDERECO_NOVO: EnderecoCliente = {
 };
 const hoje = () => new Date().toISOString().slice(0, 10);
 
+/** Linha automática do Histórico (orçamento ou pedido do cliente), vinda de /clientes/{id}/historico. */
+type DocumentoHistorico = { origem: "orcamento" | "pedido"; origem_id: number; chave: number; data: string; descricao: string; status: string };
+/** Linha da aba Histórico: anotação digitada ou, com `documento`, orçamento/pedido só de leitura. */
+type LinhaHistorico = HistoricoCliente & { documento?: DocumentoHistorico };
+const linhaDoDocumento = (d: DocumentoHistorico): LinhaHistorico => ({ data: d.data, descricao: d.descricao, status: 1, documento: d });
+// Cores do status atual do documento (as mesmas das listagens).
+const COR_STATUS_DOCUMENTO: Record<string, string> = {
+  NOVO: "text-primary", PEDIDO: "text-warning-ink", FATURADO: "text-warning-ink", "CONCLUÍDO": "text-success", CANCELADO: "text-error",
+};
+
 /** Linhas novas têm id negativo só na tela: vão sem id para a API criar. */
 const semIdTemporario = <T extends { id?: number }>(linhas: T[]) => linhas.map(({ id, ...resto }) => (id && id > 0 ? { id, ...resto } : resto));
 
@@ -77,6 +89,21 @@ export function ClienteForm() {
   const [listas, setListas] = useState<ListaPreco[]>([]);
   const [tiposDocumento, setTiposDocumento] = useState<TipoDocumento[]>([]);
   const [bancos, setBancos] = useState<Banco[]>([]);
+  // Histórico: orçamentos e pedidos do cliente (linhas automáticas, de 5 em 5 como na MarketUP).
+  const [documentos, setDocumentos] = useState<DocumentoHistorico[]>([]);
+  const [totalDocumentos, setTotalDocumentos] = useState(0);
+  const [paginaDocumentos, setPaginaDocumentos] = useState(0);
+
+  const carregarDocumentos = (pagina: number) =>
+    api<{ count: number; results: DocumentoHistorico[] }>(`/clientes/${id}/historico?page=${pagina}`).then((r) => {
+      setDocumentos((atuais) => (pagina === 1 ? r.results : [...atuais, ...r.results]));
+      setTotalDocumentos(r.count);
+      setPaginaDocumentos(pagina);
+    }, () => undefined);
+
+  useEffect(() => {
+    if (editando) carregarDocumentos(1);
+  }, [editando, id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     api<{ results: ListaPreco[] }>("/listas-precos?page_size=200").then((r) => setListas(r.results), () => undefined);
@@ -467,11 +494,27 @@ export function ClienteForm() {
           )}
 
           {aba === "Histórico" && (
-            <AbaLista<HistoricoCliente>
+            <>
+            {/* Anotações digitadas (lápis e lixeira, gravam no Salvar) + orçamentos e pedidos (só a lupa), do mais recente para o mais antigo. */}
+            <AbaLista<LinhaHistorico>
               nova={{ data: hoje(), descricao: "", status: 1 }}
-              linhas={dados.historico}
-              onChange={(l) => set("historico", [...l].sort((a, b) => b.data.localeCompare(a.data)))}
+              linhas={[...dados.historico, ...documentos.map(linhaDoDocumento)].sort((a, b) => b.data.localeCompare(a.data))}
+              onChange={(l) => set("historico", l.filter((x) => !x.documento).sort((a, b) => b.data.localeCompare(a.data)))}
               podeSalvar={podeSalvar}
+              somenteLeitura={(h) => !!h.documento}
+              chave={(h) => (h.documento ? `${h.documento.origem}-${h.documento.chave}` : `nota-${h.id}`)}
+              acoes={(h) =>
+                h.documento ? (
+                  <Link
+                    to={`${h.documento.origem === "pedido" ? ROTA_PEDIDOS : ROTA_ORCAMENTOS}/${h.documento.chave}`}
+                    aria-label={`Abrir ${h.descricao}`}
+                    title="Abrir"
+                    className="inline-flex size-12 items-center justify-center text-primary hover:bg-primary-light md:size-9"
+                  >
+                    <IconSearch size={20} aria-hidden />
+                  </Link>
+                ) : null
+              }
               vazio="Nenhum histórico para este cliente até o momento!"
               validar={(h) => (!h.data ? "Informe a data." : !h.descricao.trim() ? "Informe a descrição." : null)}
               campos={(h, setH) => (
@@ -493,10 +536,29 @@ export function ClienteForm() {
                 {
                   cabecalho: "Status",
                   classe: "w-28",
-                  exibir: (h) => <span className={cn("font-semibold uppercase", h.status === 2 ? "text-success" : "text-warning-ink")}>{h.status === 2 ? "Concluído" : "Pendente"}</span>,
+                  exibir: (h) =>
+                    h.documento ? (
+                      <span className={cn("font-semibold uppercase", COR_STATUS_DOCUMENTO[h.documento.status] ?? "text-ink")}>{h.documento.status}</span>
+                    ) : (
+                      <span className={cn("font-semibold uppercase", h.status === 2 ? "text-success" : "text-warning-ink")}>{h.status === 2 ? "Concluído" : "Pendente"}</span>
+                    ),
                 },
               ]}
             />
+            {editando && (
+              <div className="mt-3 flex justify-end">
+                {/* Como na MarketUP: o botão fica cinza quando não há mais registros. */}
+                <button
+                  type="button"
+                  onClick={() => carregarDocumentos(paginaDocumentos + 1)}
+                  disabled={documentos.length >= totalDocumentos}
+                  className="min-h-12 rounded-xs bg-secondary px-4 text-xs font-bold uppercase text-surface-raised hover:opacity-90 disabled:bg-secondary-light disabled:text-ink-muted md:min-h-9"
+                >
+                  Ver mais registros
+                </button>
+              </div>
+            )}
+            </>
           )}
         </div>
 

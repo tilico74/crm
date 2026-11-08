@@ -137,3 +137,88 @@ class CondicaoPagamento(ModeloBase):
 
     def __str__(self):
         return self.descricao
+
+
+# ---- Contas a receber e caixa (receivable / Event, EntryEvent e Entry da MarketUP) ----
+# A T203 cria o mínimo que o pedido usa (título por parcela, recebimento, estorno e recibo);
+# a tela completa de contas a receber e o fluxo de caixa ficam na T302.
+
+
+class ContaReceber(ModeloBase):
+    """Título a receber (Event com IsCredit). Pedido: OriginID 7 (Vendas), OriginKey = número do pedido."""
+
+    class Origem(models.IntegerChoices):
+        MANUAL = 0, "Manual"
+        VENDAS = 7, "Vendas"
+        OS = 11, "Ordem de serviço"
+
+    origem = models.PositiveSmallIntegerField("origem", choices=Origem, default=Origem.MANUAL)
+    origem_id = models.BigIntegerField("número do documento de origem", null=True, blank=True)
+    parcela_pedido = models.ForeignKey(
+        "vendas.ParcelaPedido", verbose_name="parcela do pedido", on_delete=models.SET_NULL, null=True, blank=True, related_name="contas"
+    )
+    cliente = models.ForeignKey("clientes.Cliente", verbose_name="sacado", on_delete=models.PROTECT, null=True, blank=True, related_name="contas_receber")
+    conta_gerencial = models.ForeignKey(ContaGerencial, verbose_name="conta gerencial", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
+    tipo_pagamento = models.ForeignKey(TipoPagamento, verbose_name="forma de pagamento", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
+    descricao = models.CharField("descrição", max_length=300)
+    parcela = models.PositiveSmallIntegerField("parcela", default=1)
+    parcelas = models.PositiveSmallIntegerField("de", default=1)
+    emissao = models.DateField("emissão")
+    vencimento = models.DateField("vencimento")
+    valor = models.DecimalField("valor", max_digits=14, decimal_places=2)
+    saldo = models.DecimalField("saldo", max_digits=14, decimal_places=2)
+    cancelada = models.BooleanField("cancelada", default=False)
+
+    class Meta:
+        db_table = "conta_receber"
+        ordering = ["vencimento", "id"]
+        verbose_name = "conta a receber"
+        verbose_name_plural = "contas a receber"
+        indexes = [models.Index(fields=["origem", "origem_id"]), models.Index(fields=["vencimento"])]
+
+    def __str__(self):
+        return f"{self.descricao} ({self.parcela}/{self.parcelas})"
+
+
+class LancamentoCaixa(ModeloBase):
+    """Movimento na conta corrente (Entry): entrada de um recebimento ou saída de um estorno."""
+
+    data = models.DateField("data")
+    conta_corrente = models.ForeignKey(ContaCorrente, verbose_name="conta corrente", on_delete=models.PROTECT, null=True, blank=True, related_name="lancamentos")
+    tipo_pagamento = models.ForeignKey(TipoPagamento, verbose_name="forma", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
+    credito = models.BooleanField("entrada", default=True)
+    valor = models.DecimalField("valor", max_digits=14, decimal_places=2)
+    descricao = models.CharField("descrição", max_length=300)
+    origem = models.PositiveSmallIntegerField("origem", choices=ContaReceber.Origem, default=ContaReceber.Origem.MANUAL)
+    origem_id = models.BigIntegerField("número do documento de origem", null=True, blank=True)
+
+    class Meta:
+        db_table = "lancamento_caixa"
+        ordering = ["-data", "-id"]
+        verbose_name = "lançamento de caixa"
+        verbose_name_plural = "lançamentos de caixa"
+
+
+class Recebimento(ModeloBase):
+    """Baixa de um título (EntryEvent): valor amortizado, desconto e juros. Estornar desfaz a baixa e lança a saída."""
+
+    conta = models.ForeignKey(ContaReceber, verbose_name="conta a receber", on_delete=models.CASCADE, related_name="recebimentos")
+    data = models.DateField("data")
+    valor = models.DecimalField("valor recebido", max_digits=14, decimal_places=2)
+    desconto = models.DecimalField("desconto", max_digits=14, decimal_places=2, default=0)
+    juros = models.DecimalField("juros", max_digits=14, decimal_places=2, default=0)
+    tipo_pagamento = models.ForeignKey(TipoPagamento, verbose_name="efetuado em", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
+    conta_corrente = models.ForeignKey(ContaCorrente, verbose_name="conta corrente", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
+    lancamento = models.ForeignKey(LancamentoCaixa, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    estornado_em = models.DateTimeField("estornado em", null=True, blank=True)
+
+    class Meta:
+        db_table = "recebimento"
+        ordering = ["data", "id"]
+        verbose_name = "recebimento"
+        verbose_name_plural = "recebimentos"
+
+    @property
+    def amortizado(self):
+        """Quanto o recebimento abate do saldo: recebido − juros + desconto."""
+        return self.valor - self.juros + self.desconto

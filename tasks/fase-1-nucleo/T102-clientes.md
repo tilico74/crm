@@ -40,7 +40,7 @@ Cadastro de clientes (PF e PJ), contatos, endereços e lista de preço, com ID =
 ## Pendências (dependem de outras tarefas)
 
 - Aba Crédito: "utilizado" e as parcelas vêm do Contas a receber (fase 3); hoje mostra limite e disponível.
-- Histórico automático de orçamentos, pedidos e OS: tarefa T206. Botão "Adicionar pedido de venda": T203.
+- Histórico automático de orçamentos e pedidos: tarefa T206 (OS fica fora, como na MarketUP). Botão "Adicionar pedido de venda": T203.
 - ~~Carga dos clientes~~: feita em 08/11/2026 (M003, comando `importar_clientes`); próximo ID automático 3296.
 
 ## Dúvidas

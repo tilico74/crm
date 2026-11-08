@@ -206,12 +206,18 @@ class Command(BaseCommand):
                     endereco.cliente_id = cliente.id
                     enderecos.append(endereco)
             EnderecoCliente.objects.bulk_create(enderecos, batch_size=500)
+            # A exportação não traz o limite de crédito: vale o "Limite para novos clientes" de
+            # Ajustes › Parâmetros de venda (decisão do usuário em 08/11/2026). Só preenche quem está sem limite.
+            from apps.vendas.models import ParametrosVenda
+
+            padrao = ParametrosVenda.atual().limite_credito_novos
+            com_padrao = Cliente.objects.filter(id__in=ids, limite_credito=0).update(limite_credito=padrao)
             with connection.cursor() as cursor:
                 for sql in connection.ops.sequence_reset_sql(no_style(), [Cliente, EnderecoCliente]):
                     cursor.execute(sql)
 
         log = self._gravar_log(log_nomes, problemas)
-        self.stdout.write(self.style.SUCCESS(f"Gravados: {len(novos)} novos, {len(atualizar)} atualizados. Log: {log}"))
+        self.stdout.write(self.style.SUCCESS(f"Gravados: {len(novos)} novos, {len(atualizar)} atualizados; {com_padrao} com o limite padrão de R$ {padrao}. Log: {log}"))
         self._conferir(ids)
 
     def _resumo_problemas(self, problemas):
@@ -243,7 +249,8 @@ class Command(BaseCommand):
         with connection.cursor() as cursor:
             cursor.execute("SELECT last_value FROM cliente_id_seq")
             sequencia = cursor.fetchone()[0]
-        ok = no_banco == set(ids) and sequencia == max(ids)
+        # A sequência pode passar do maior ID da planilha se houver clientes criados no RDX (testes).
+        ok = no_banco == set(ids) and sequencia >= max(ids)
         self.stdout.write(
             f"Conferência: planilha {len(ids)} · banco {len(no_banco)} · maior ID {max(ids)} · "
             f"próximo ID automático {sequencia + 1} → {'OK' if ok else 'DIVERGÊNCIA'}"

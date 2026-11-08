@@ -1,6 +1,6 @@
 import { IconBarcode, IconCamera, IconCircleArrowRight, IconCircleChevronDown, IconCircleMinus, IconCirclePlus, IconCopy, IconEqual, IconList, IconMessage, IconPrinter, IconSearch, IconTrash, IconUser } from "@tabler/icons-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 
 import { useMe } from "@/app/useMe";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -15,15 +15,24 @@ import type { Produto, Servico, Unidade } from "@/resources/catalogo/types";
 import type { Cliente, EnderecoCliente, ListaPreco } from "@/resources/clientes/types";
 import { BarraAcoes } from "@/resources/financeiro/BarraAcoes";
 import type { TipoPagamento } from "@/resources/financeiro/types";
+import { CancelarPedidoModal, EntregarModal, PagamentoFaturado, ReceberModal, ReciboModal } from "@/resources/pedidos/ModaisPedido";
+import { ENTREGA, FINANCEIRO, ROTA_PEDIDOS, SITUACAO, type ExtrasPedido, type Pedido } from "@/resources/pedidos/types";
 
 import { DescontoItemModal } from "./DescontoItemModal";
 import { DadosCliente } from "./DadosCliente";
 import { NovoEndereco } from "./NovoEndereco";
-import { ROTA_ORCAMENTOS as ROTA } from "./OrcamentosList";
+import { ROTA_ORCAMENTOS } from "./OrcamentosList";
 import { ehFracionada, precoNaLista, unidadesDoItem, type ItemCatalogo, type UnidadeVenda } from "./preco";
-import { STATUS, totaisOrcamento, totalItem, type ItemOrcamento, type Orcamento, type ParcelaOrcamento } from "./types";
+import { STATUS, totaisOrcamento, totalItem, type ItemOrcamento, type Orcamento, type ParcelaOrcamento, type StatusOrcamento } from "./types";
 
-type Dados = Omit<Orcamento, "id">;
+/** O orçamento e o pedido usam a mesma ficha; o que muda está aqui. */
+type TipoDocumento = "orcamento" | "pedido";
+const DOCUMENTO = {
+  orcamento: { titulo: "Orçamento", nome: "orçamento", rota: ROTA_ORCAMENTOS, api: "/orcamentos", datas: ["emissao", "validade", "entrega"] as const },
+  pedido: { titulo: "Pedido", nome: "pedido", rota: ROTA_PEDIDOS, api: "/pedidos", datas: ["emissao", "entrega"] as const },
+};
+
+type Dados = Omit<Orcamento, "id" | "status"> & { status: number } & Partial<ExtrasPedido>;
 type Vendedor = { id: number; nome: string };
 
 const VAZIO: Dados = {
@@ -39,10 +48,33 @@ const rotuloMini = "text-[11px] font-semibold uppercase text-primary";
 
 /** Vendas › Orçamento: ficha com as seções da MarketUP (Orçamento, Cliente, Itens, Pagamento). */
 export function OrcamentoForm() {
+  return <DocumentoVendaForm tipo="orcamento" />;
+}
+
+/** Vendas › Pedido: mesma ficha do orçamento, mais concluir venda, entregar, receber, recibo e cancelar com estorno. */
+export function PedidoForm() {
+  return <DocumentoVendaForm tipo="pedido" />;
+}
+
+function DocumentoVendaForm({ tipo }: { tipo: TipoDocumento }) {
+  const doc = DOCUMENTO[tipo];
+  const ROTA = doc.rota;
+  const ehPedido = tipo === "pedido";
   const { id } = useParams();
+  const [busca] = useSearchParams();
+  const doOrcamento = ehPedido ? busca.get("orcamento") : null;
   const editando = id !== undefined && id !== "novo";
   const navigate = useNavigate();
   const { pode } = useMe();
+  // Pedido: modais de concluir, entregar, receber, recibo e cancelar.
+  const [modal, setModal] = useState<
+    | null
+    | { tipo: "receber" | "recibo"; conta: number }
+    | { tipo: "entregar" }
+    | { tipo: "cancelarRecebido"; recebido: number }
+    | { tipo: "gerarPedido" }
+  >(null);
+  const [mensagem, setMensagem] = useState("");
 
   const [numero, setNumero] = useState<number | null>(null);
   const [dados, setDados] = useState<Dados>(VAZIO);
@@ -77,20 +109,26 @@ export function OrcamentoForm() {
       ]),
     );
     const carregar = editando
-      ? api<Orcamento>(`/orcamentos/${id}`).then(({ id: n, ...o }) => {
-          setNumero(n);
-          setDados({ ...VAZIO, ...o });
-          return o.cliente;
-        })
-      : api<Partial<Dados>>("/orcamentos/novo").then((padrao) => {
+      ? recarregar()
+      : // Pedido vindo do orçamento ("Gerar pedido"): a cópia do orçamento chega pronta e só grava no Salvar.
+        api<Partial<Dados>>(`${doc.api}/novo${doOrcamento ? `?orcamento=${doOrcamento}` : ""}`).then((padrao) => {
           setDados({ ...VAZIO, ...padrao });
-          return null;
+          return padrao.cliente ?? null;
         });
     carregar
       .then((clienteId) => (clienteId ? escolherCliente(clienteId, false) : undefined))
       .catch((e: ApiError) => setAviso(e.message))
       .finally(() => setCarregando(false));
-  }, [editando, id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editando, id, tipo, doOrcamento]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Relê o documento gravado (depois de concluir, entregar, receber ou cancelar). */
+  function recarregar() {
+    return api<Orcamento | Pedido>(`${doc.api}/${id}`).then(({ id: n, ...o }) => {
+      setNumero(n);
+      setDados({ ...VAZIO, ...(o as Partial<Dados>) });
+      return o.cliente;
+    });
+  }
 
   /** Carrega a ficha do cliente (endereços, crédito) e a lista de preços dele. */
   async function escolherCliente(clienteId: number, preencher = true) {
@@ -120,42 +158,100 @@ export function OrcamentoForm() {
     return e ? (Array.isArray(e) ? e.map((x) => (typeof x === "string" ? x : Object.values(x as object).flat().join(" "))).join(" ") : String(e)) : undefined;
   };
 
-  const salvar = (voltar: boolean) => async (e?: FormEvent) => {
-    e?.preventDefault();
+  /** Grava o documento e devolve o número (null se não gravou). */
+  const gravar = async (): Promise<number | null> => {
     // Como na MarketUP, não salva sem cliente: leva a pessoa até o campo do nome.
     if (!dados.cliente) {
       setErros({ cliente: ["Identifique o cliente: digite o nome para localizá-lo ou use Cadastrar novo cliente."] });
-      setAviso("Identifique o cliente para salvar o orçamento.");
+      setAviso(`Identifique o cliente para salvar o ${doc.nome}.`);
       const campo = document.querySelector<HTMLInputElement>('input[aria-label="Buscar cliente"]');
       campo?.scrollIntoView({ behavior: "smooth", block: "center" });
       campo?.focus({ preventScroll: true });
-      return;
+      return null;
     }
     setSalvando(true);
     setErros({});
     setAviso("");
     const corpo = {
       ...dados,
-      itens: dados.itens.map(({ id: _i, subtotal: _s, total: _t, unidade_sigla: _u, codigo_barras: _c, ...i }) => i),
-      parcelas: dados.parcelas.map(({ id: _i, tipo_pagamento_nome: _t, condicao_pagamento_nome: _c, ...p }) => p),
+      itens: dados.itens.map(({ id: _i, subtotal: _s, total: _t, unidade_sigla: _u, codigo_barras: _c, ...i }) => {
+        const { entregue: _e, ...resto } = i as ItemOrcamento & { entregue?: string };
+        return resto;
+      }),
+      parcelas: dados.parcelas.map(({ id: _i, tipo_pagamento_nome: _t, condicao_pagamento_nome: _c, ...p }) => {
+        const { saldo: _s, conta_receber: _r, ultimo_recebimento: _u, ...resto } = p as ParcelaOrcamento & { saldo?: string; conta_receber?: number; ultimo_recebimento?: string };
+        return resto;
+      }),
     };
     try {
-      const salvo = await api<Orcamento>(editando ? `/orcamentos/${id}` : "/orcamentos", { method: editando ? "PUT" : "POST", body: JSON.stringify(corpo) });
-      if (voltar) navigate(ROTA);
-      else if (!editando) navigate(`${ROTA}/${salvo.id}`, { replace: true });
-      else {
-        const { id: _n, ...o } = salvo;
-        setDados({ ...VAZIO, ...o });
-        setAviso("Orçamento salvo.");
-      }
+      const salvo = await api<Orcamento | Pedido>(editando ? `${doc.api}/${id}` : doc.api, { method: editando ? "PUT" : "POST", body: JSON.stringify(corpo) });
+      const { id: n, ...o } = salvo;
+      setDados({ ...VAZIO, ...(o as Partial<Dados>) });
+      return n;
     } catch (falha) {
       if (falha instanceof ApiError) {
         setErros(falha.errors);
         setAviso(falha.message);
       }
+      return null;
     } finally {
       setSalvando(false);
     }
+  };
+
+  const salvar = (voltar: boolean) => async (e?: FormEvent) => {
+    e?.preventDefault();
+    const n = await gravar();
+    if (n === null) return;
+    if (voltar) navigate(ROTA);
+    else if (!editando) navigate(`${ROTA}/${n}`, { replace: true });
+    else setAviso(`${doc.titulo} salvo.`);
+  };
+
+  /** Ações do pedido que gravam no servidor e voltam com o pedido atualizado. */
+  const acaoPedido = async (caminho: string, corpo: object, sucesso: (n: number) => string) => {
+    setAviso("");
+    try {
+      const p = await api<Pedido>(`${doc.api}/${caminho}`, { method: "POST", body: JSON.stringify(corpo) });
+      const { id: n, ...o } = p;
+      setDados({ ...VAZIO, ...(o as Partial<Dados>) });
+      setErros({});
+      setMensagem(sucesso(n));
+      return true;
+    } catch (e) {
+      // Recusas do concluir (endereço, parcelas, limite de crédito…) aparecem no modal Aviso, como na MarketUP.
+      setMensagem(e instanceof ApiError ? e.message : "Não foi possível concluir a operação.");
+      return false;
+    }
+  };
+
+  /** "Concluir venda": grava o que está na tela e fatura (gera as contas a receber). */
+  const concluirVenda = async () => {
+    const n = await gravar();
+    if (n === null) return;
+    const ok = await acaoPedido(`${n}/concluir`, {}, (x) => `Pedido Nº ${x} concluído com sucesso!`);
+    if (!editando) navigate(`${ROTA}/${n}`, { replace: true });
+    else if (!ok) await recarregar();
+  };
+
+  /** Cancelar pedido (checkOrderCancellation): sem nada recebido, confirma e cancela; com valor recebido, abre o modal de estorno. */
+  const pedirCancelamento = async () => {
+    if (!ehPedido) return setCancelar(true);
+    try {
+      const previa = await api<{ valor_recebido: string }>(`${doc.api}/${id}/cancelamento`);
+      const recebido = Number(previa.valor_recebido);
+      if (recebido > 0) setModal({ tipo: "cancelarRecebido", recebido });
+      else setCancelar(true);
+    } catch (e) {
+      setAviso(e instanceof ApiError ? e.message : "Não foi possível cancelar.");
+    }
+  };
+
+  /** "Gerar pedido" do orçamento (orderCurrentBudget): salva o orçamento e abre o pedido novo com a cópia dele. */
+  const gerarPedido = async () => {
+    setModal(null);
+    const n = await gravar();
+    if (n !== null) navigate(`${ROTA_PEDIDOS}/novo?orcamento=${n}`);
   };
 
   // "Salvar" do balão de comentários: no orçamento já gravado, grava só os comentários na hora;
@@ -164,7 +260,7 @@ export function OrcamentoForm() {
     set("observacao", observacao);
     if (!editando) return;
     try {
-      await api(`/orcamentos/${id}`, { method: "PATCH", body: JSON.stringify({ observacao }) });
+      await api(`${doc.api}/${id}`, { method: "PATCH", body: JSON.stringify({ observacao }) });
       setErros({});
       setAviso("Comentários salvos.");
     } catch (e) {
@@ -174,7 +270,7 @@ export function OrcamentoForm() {
 
   const copiar = async () => {
     try {
-      const copia = await api<Orcamento>(`/orcamentos/${id}/copiar`, { method: "POST" });
+      const copia = await api<Orcamento>(`${doc.api}/${id}/copiar`, { method: "POST" });
       navigate(`${ROTA}/${copia.id}`);
     } catch (e) {
       setAviso(e instanceof ApiError ? e.message : "Não foi possível copiar.");
@@ -183,17 +279,20 @@ export function OrcamentoForm() {
 
   if (carregando) return <p className="mx-auto max-w-[992px] px-4 py-10 text-ink-muted">Carregando…</p>;
 
-  const status = STATUS[dados.status];
+  const status = ehPedido ? SITUACAO[dados.situacao ?? "novo"] : STATUS[dados.status as StatusOrcamento];
   const enderecos = cliente?.enderecos.filter((e) => e.ativo) ?? [];
+  const faturado = ehPedido && (dados.status === 2 || dados.status === 6);
+  const podePedido = (acao: "alterar" | "adicionar") => pode(ROTA_PEDIDOS, acao);
+  const entregaPendente = faturado && dados.entrega_status !== 2;
 
   return (
     <>
       <PageHeader
         eyebrow="Vendas"
-        title="Orçamento"
+        title={doc.titulo}
         acoes={
           <>
-            <Link to={ROTA} aria-label="Listar orçamentos" title="Listar" className={iconeTopo}>
+            <Link to={ROTA} aria-label={`Listar ${doc.nome}s`} title="Listar" className={iconeTopo}>
               <IconList size={28} aria-hidden />
             </Link>
             {editando && (
@@ -202,7 +301,7 @@ export function OrcamentoForm() {
               </Link>
             )}
             {editando && pode(ROTA, "adicionar") && (
-              <button type="button" onClick={copiar} aria-label="Copiar orçamento" title="Copiar (novo orçamento igual)" className={iconeTopo}>
+              <button type="button" onClick={copiar} aria-label={`Copiar ${doc.nome}`} title={`Copiar (novo ${doc.nome} igual)`} className={iconeTopo}>
                 <IconCopy size={28} aria-hidden />
               </button>
             )}
@@ -218,16 +317,27 @@ export function OrcamentoForm() {
       <form onSubmit={salvar(false)} noValidate className="mx-auto max-w-[992px] px-4 pb-28 pt-8 xl:px-0">
         {erro("detail") && <p role="alert" className="mb-4 rounded-xs bg-error-soft px-4 py-3 text-sm font-semibold text-error">{erro("detail")}</p>}
 
-        {/* ---- Orçamento ---- */}
-        <h2 className="mb-2 text-2xl font-normal text-ink md:text-[30px]">Orçamento</h2>
-        <div className="flex flex-col border border-primary sm:flex-row">
-          <div className={cn("flex min-h-24 items-center justify-center px-6 text-2xl font-bold uppercase sm:w-[268px]", status.fundo)}>{status.rotulo}</div>
-          <div className="grid flex-1 grid-cols-1 gap-x-6 gap-y-2 p-3 sm:grid-cols-3">
+        {/* ---- Orçamento / Pedido ---- */}
+        <h2 className="mb-2 text-2xl font-normal text-ink md:text-[30px]">{doc.titulo}</h2>
+        <div className={cn("flex flex-col border sm:flex-row", ehPedido ? status.borda : "border-primary")}>
+          <div className={cn("flex min-h-24 flex-col items-center justify-center px-6 text-2xl font-bold uppercase sm:w-[268px]", status.fundo)}>
+            {status.rotulo}
+            {/* Pedido: "Entrega: ENTREGUE / Pagamento: PAGO" embaixo do status, como na MarketUP. */}
+            {ehPedido && dados.status !== 1 && (
+              <span className="mt-1 grid grid-cols-[auto_auto] gap-x-1 text-[10px] font-semibold leading-tight">
+                <span className="text-right opacity-80">Entrega:</span>
+                <span>{ENTREGA[dados.entrega_status ?? 1]?.rotulo}</span>
+                <span className="text-right opacity-80">Pagamento:</span>
+                <span>{FINANCEIRO[dados.financeiro_status ?? 1]?.rotulo}</span>
+              </span>
+            )}
+          </div>
+          <div className={cn("grid flex-1 grid-cols-1 gap-x-6 gap-y-2 p-3", ehPedido ? "sm:grid-cols-[1fr_1fr_auto]" : "sm:grid-cols-3")}>
             <div className="flex items-end text-4xl font-normal tabular-nums text-ink">
               <span className="mr-1 text-sm text-primary">#</span>
               {numero ?? "novo"}
             </div>
-            <div className="flex items-end gap-2 sm:col-span-2">
+            <div className={cn("flex items-end gap-2", !ehPedido && "sm:col-span-2")}>
               {/* Balão "Comentários" da MarketUP: texto livre do orçamento, com um só botão Salvar. */}
               <BalaoEdicao
                 titulo="Comentários"
@@ -260,17 +370,47 @@ export function OrcamentoForm() {
               </label>
               <IconUser size={28} aria-hidden className="mb-1 hidden text-ink-muted sm:block" />
             </div>
-            {(["emissao", "validade", "entrega"] as const).map((campo) => (
+            {doc.datas.map((campo) => (
               <label key={campo}>
                 <span className={rotuloMini}>{{ emissao: "Emissão", validade: "Validade", entrega: "Entrega" }[campo]}</span>
                 <input type="date" value={dados[campo] ?? ""} onChange={(e) => set(campo, (e.target.value || null) as never)} disabled={!podeSalvar} aria-invalid={!!erro(campo)} className={cn(campoCaixa, "text-lg tabular-nums")} />
                 {erro(campo) && <span className="text-xs font-semibold text-error">{erro(campo)}</span>}
               </label>
             ))}
+            {/* Pedido: CONCLUIR (Novo) ou ENTREGAR / DEVOLVER (faturado), à direita das datas, como na MarketUP. */}
+            {ehPedido && (
+              <div className="flex flex-col justify-end gap-2 sm:row-start-1 sm:col-start-3 sm:row-span-2">
+                {dados.status === 1 && podeSalvar && (
+                  <button type="button" onClick={concluirVenda} disabled={salvando} className="min-h-10 rounded-xs bg-success px-5 text-sm font-bold uppercase text-surface-raised hover:opacity-90 disabled:opacity-60">
+                    Concluir
+                  </button>
+                )}
+                {faturado && (
+                  <>
+                    <button type="button" onClick={() => setModal({ tipo: "entregar" })} disabled={!entregaPendente || !podePedido("alterar")} className="min-h-10 rounded-xs bg-primary px-5 text-sm font-bold uppercase text-primary-foreground hover:bg-primary-dark disabled:bg-secondary-light disabled:text-ink-muted">
+                      Entregar
+                    </button>
+                    <button type="button" disabled title="Devolução / troca: chega com o estoque (T301)" className="min-h-10 rounded-xs bg-secondary-light px-5 text-sm font-bold uppercase text-ink-muted">
+                      Devolver
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
         {dados.data_cancelamento && <p className="mt-2 text-sm font-semibold text-error">Cancelado em {formatarData(dados.data_cancelamento)}.</p>}
-        {dados.pedido_id && <p className="mt-2 text-sm font-semibold text-success">Pedido gerado: nº {dados.pedido_id}.</p>}
+        {ehPedido && dados.data_faturamento && <p className="mt-2 text-sm text-ink-muted">Faturado em {formatarData(dados.data_faturamento)}{dados.data_entregue ? ` · entregue em ${formatarData(dados.data_entregue)}` : ""}.</p>}
+        {dados.pedido_id && (
+          <Link to={`${ROTA_PEDIDOS}/${dados.pedido_id}`} className="mt-2 inline-block text-sm font-semibold text-primary underline">
+            Ir para o pedido gerado (nº {dados.pedido_id})
+          </Link>
+        )}
+        {ehPedido && dados.orcamento && (
+          <Link to={`${ROTA_ORCAMENTOS}/${dados.orcamento}`} className="mt-2 inline-block text-sm font-semibold text-primary underline">
+            Ir para o orçamento de origem (nº {dados.orcamento})
+          </Link>
+        )}
 
         {/* ---- Cliente ---- */}
         <h2 className="mb-2 mt-8 text-2xl font-normal text-ink md:text-[30px]">Cliente</h2>
@@ -360,14 +500,26 @@ export function OrcamentoForm() {
 
         {/* ---- Pagamento ---- */}
         <h2 className="mb-2 mt-8 text-2xl font-normal text-ink md:text-[30px]">Pagamento</h2>
-        <Pagamento
-          tipos={tipos}
-          parcelas={dados.parcelas}
-          total={totais.total}
-          podeSalvar={podeSalvar}
-          erro={erro("parcelas")}
-          onChange={(p) => set("parcelas", p)}
-        />
+        {ehPedido && dados.status !== 1 ? (
+          <PagamentoFaturado
+            parcelas={dados.parcelas}
+            pendente={Number(dados.saldo_receber ?? 0)}
+            podeReceber={pode("/financeiro/contas-a-receber", "adicionar")}
+            onRecibo={(conta) => setModal({ tipo: "recibo", conta })}
+            onReceber={(conta) => setModal({ tipo: "receber", conta })}
+          />
+        ) : (
+          <Pagamento
+            tipos={tipos}
+            parcelas={dados.parcelas}
+            total={totais.total}
+            podeSalvar={podeSalvar}
+            erro={erro("parcelas")}
+            apiBase={doc.api}
+            nome={doc.nome}
+            onChange={(p) => set("parcelas", p)}
+          />
+        )}
 
         <BarraAcoes
           voltar={ROTA}
@@ -377,32 +529,55 @@ export function OrcamentoForm() {
           salvando={salvando}
           onSalvarEVoltar={salvar(true)}
           extras={
-            editando && aberto ? (
-              <>
-                {pode(ROTA, "alterar") && (
-                  <button type="button" onClick={() => setCancelar(true)} className="min-h-12 rounded-xs bg-error px-4 text-sm font-bold uppercase text-surface-raised hover:opacity-90">
-                    Cancelar
-                  </button>
-                )}
-                <button type="button" disabled title="Chega com a T203 (Pedidos)" className="min-h-12 rounded-xs bg-secondary px-4 text-sm font-bold uppercase text-surface-raised opacity-50">
+            <>
+              {/* Cancelar: orçamento e pedido Novo já gravados; pedido faturado também (com estorno). */}
+              {editando && (aberto || faturado) && pode(ROTA, "alterar") && (
+                <button type="button" onClick={pedirCancelamento} className="min-h-12 rounded-xs bg-error px-4 text-sm font-bold uppercase text-surface-raised hover:opacity-90">
+                  Cancelar
+                </button>
+              )}
+              {!ehPedido && editando && aberto && (
+                <button
+                  type="button"
+                  onClick={() => setModal({ tipo: "gerarPedido" })}
+                  disabled={!podePedido("adicionar")}
+                  className="min-h-12 rounded-xs bg-secondary px-4 text-sm font-bold uppercase text-surface-raised hover:opacity-90 disabled:opacity-50"
+                >
                   Gerar pedido
                 </button>
-              </>
-            ) : null
+              )}
+              {ehPedido && aberto && podeSalvar && (
+                <button type="button" onClick={concluirVenda} disabled={salvando} className="min-h-12 rounded-xs bg-success px-4 text-sm font-bold uppercase text-surface-raised hover:opacity-90 disabled:opacity-60">
+                  Concluir venda
+                </button>
+              )}
+              {faturado && entregaPendente && podePedido("alterar") && (
+                <button type="button" onClick={() => setModal({ tipo: "entregar" })} className="min-h-12 rounded-xs bg-primary px-4 text-sm font-bold uppercase text-primary-foreground hover:bg-primary-dark">
+                  Entregar
+                </button>
+              )}
+            </>
           }
         />
       </form>
 
+      {mensagem && <ModalAviso mensagem={mensagem} onFechar={() => setMensagem("")} />}
+
       {cancelar && (
         <ConfirmDialog
-          title="Cancelar orçamento"
-          message={`Cancelar o orçamento ${numero}? Depois de cancelado ele não pode mais ser alterado (use Copiar para refazer).`}
-          confirmLabel="Cancelar orçamento"
+          title={`Cancelar ${doc.nome}`}
+          message={
+            ehPedido
+              ? `Deseja mesmo cancelar este pedido? Esta operação não poderá ser desfeita!`
+              : `Cancelar o orçamento ${numero}? Depois de cancelado ele não pode mais ser alterado (use Copiar para refazer).`
+          }
+          confirmLabel={`Cancelar ${doc.nome}`}
           onCancel={() => setCancelar(false)}
           onConfirm={async () => {
             setCancelar(false);
+            if (ehPedido) return void acaoPedido(`${id}/cancelar`, {}, (n) => `Pedido Nº ${n} cancelado.`);
             try {
-              const o = await api<Orcamento>(`/orcamentos/${id}/cancelar`, { method: "PATCH" });
+              const o = await api<Orcamento>(`${doc.api}/${id}/cancelar`, { method: "PATCH" });
               const { id: _n, ...resto } = o;
               setDados({ ...VAZIO, ...resto });
               setAviso("Orçamento cancelado.");
@@ -412,6 +587,40 @@ export function OrcamentoForm() {
           }}
         />
       )}
+
+      {modal?.tipo === "gerarPedido" && (
+        <ConfirmDialog
+          title="Gerar pedido"
+          message={`Deseja realmente gerar pedido para o orçamento ${numero}? Você será redirecionado para o novo pedido.`}
+          confirmLabel="Gerar pedido"
+          onCancel={() => setModal(null)}
+          onConfirm={gerarPedido}
+        />
+      )}
+      {modal?.tipo === "cancelarRecebido" && numero && (
+        <CancelarPedidoModal
+          numero={numero}
+          recebido={modal.recebido}
+          tipos={tipos}
+          onFechar={() => setModal(null)}
+          onConfirmar={(corpo) => {
+            setModal(null);
+            void acaoPedido(`${id}/cancelar`, corpo, (n) => `Pedido Nº ${n} cancelado. O valor estornado saiu do caixa.`);
+          }}
+        />
+      )}
+      {modal?.tipo === "entregar" && numero && (
+        <EntregarModal
+          numero={numero}
+          onFechar={() => setModal(null)}
+          onConfirmar={(data) => {
+            setModal(null);
+            void acaoPedido(`${id}/entregar`, { data }, (n) => `Pedido Nº ${n} entregue com sucesso!`);
+          }}
+        />
+      )}
+      {modal?.tipo === "receber" && <ReceberModal contaId={modal.conta} tipos={tipos} onFechar={() => setModal(null)} onMudou={() => void recarregar()} />}
+      {modal?.tipo === "recibo" && <ReciboModal contaId={modal.conta} onFechar={() => setModal(null)} />}
     </>
   );
 }
@@ -857,12 +1066,14 @@ function Valor({ valor, className }: { valor: number; className?: string }) {
  *   vencimento, observação e valor. Valor que passa do total é cortado no excesso, com aviso.
  * - A lixeira do grupo remove todas as parcelas dele.
  */
-function Pagamento({ tipos, parcelas, total, podeSalvar, erro, onChange }: {
+function Pagamento({ tipos, parcelas, total, podeSalvar, erro, apiBase, nome, onChange }: {
   tipos: TipoPagamento[];
   parcelas: ParcelaOrcamento[];
   total: number;
   podeSalvar: boolean;
   erro?: string;
+  apiBase: string;
+  nome: string;
   onChange: (p: ParcelaOrcamento[]) => void;
 }) {
   const [tipo, setTipo] = useState<number | "">("");
@@ -902,7 +1113,7 @@ function Pagamento({ tipos, parcelas, total, podeSalvar, erro, onChange }: {
     if (!(quanto > 0)) return avisar("O valor do recebimento não pode ser 0.");
     setGerando(true);
     try {
-      const novas = await api<ParcelaOrcamento[]>(`/orcamentos/gerar-parcelas?condicao=${condicao}&valor=${quanto}`);
+      const novas = await api<ParcelaOrcamento[]>(`${apiBase}/gerar-parcelas?condicao=${condicao}&valor=${quanto}`);
       onChange([...parcelas, ...novas]);
       setMensagem("");
       // Como na MarketUP: forma e parcelamento voltam ao vazio e o Valor passa a ser o novo saldo.
@@ -977,7 +1188,7 @@ function Pagamento({ tipos, parcelas, total, podeSalvar, erro, onChange }: {
         {parcelas.length === 0 ? (
           <div className="p-4">
             <p className="mt-10 text-2xl font-bold">Formas e Condições de Pagamento</p>
-            <p className="text-ink-muted">Para finalizar seu orçamento basta escolher a forma e a condição de pagamento e clicar em GERAR CONTAS.</p>
+            <p className="text-ink-muted">Para finalizar seu {nome} basta escolher a forma e a condição de pagamento e clicar em GERAR CONTAS.</p>
           </div>
         ) : (
           <>

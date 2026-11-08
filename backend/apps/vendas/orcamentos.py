@@ -29,6 +29,16 @@ def _data(valor: str | None, campo: str) -> date | None:
         raise ValidationError({campo: "Data inválida. Use AAAA-MM-DD."})
 
 
+def vendedor_logado(usuario) -> int | None:
+    """
+    Vendedor padrão da ficha, como na MarketUP: o funcionário ligado ao usuário logado (UserID),
+    se ele for vendedor e não estiver bloqueado.
+    """
+    return (
+        Funcionario.objects.filter(usuario=usuario, vendedor=True, bloqueado=False).values_list("id", flat=True).first()
+    )
+
+
 class OrcamentoViewSet(AuditoriaViewSet):
     funcionalidade = "orcamentos"
     queryset = Orcamento.objects.select_related("cliente", "vendedor")
@@ -74,12 +84,11 @@ class OrcamentoViewSet(AuditoriaViewSet):
         """Valores iniciais da ficha: emissão hoje, validade e entrega pelos Parâmetros de venda, vendedor = quem está logado."""
         parametros = ParametrosVenda.atual()
         hoje = timezone.localdate()
-        vendedor = Funcionario.objects.filter(usuario=request.user, vendedor=True).values_list("id", flat=True).first()
         return Response({
             "emissao": hoje,
             "validade": hoje + timedelta(days=parametros.venda_validade_orcamento),
             "entrega": hoje + timedelta(days=parametros.venda_entrega_orcamento),
-            "vendedor": vendedor,
+            "vendedor": vendedor_logado(request.user),
         })
 
     @action(detail=False, methods=["get"])

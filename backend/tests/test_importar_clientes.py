@@ -58,3 +58,22 @@ def test_simular_nao_grava_e_planilha_errada_para(tmp_path, settings):
     livro.save(tmp_path / "errada.xlsx")
     with pytest.raises(CommandError, match="não tem as colunas"):
         call_command("importar_clientes", str(tmp_path / "errada.xlsx"))
+
+
+def test_carga_aplica_o_limite_padrao_dos_parametros_de_venda(tmp_path, settings):
+    from decimal import Decimal
+
+    from apps.vendas.models import ParametrosVenda
+
+    settings.BASE_DIR = tmp_path
+    parametros = ParametrosVenda.atual()
+    parametros.limite_credito_novos = Decimal("1000")
+    parametros.save()
+    call_command("importar_clientes", planilha(tmp_path, [PF]), sem_ibge=True)
+    cliente = Cliente.objects.get(pk=109)
+    assert cliente.limite_credito == Decimal("1000.00")
+    # Limite alterado depois não é sobrescrito numa recarga.
+    cliente.limite_credito = Decimal("250")
+    cliente.save()
+    call_command("importar_clientes", planilha(tmp_path, [PF]), sem_ibge=True)
+    assert Cliente.objects.get(pk=109).limite_credito == Decimal("250.00")

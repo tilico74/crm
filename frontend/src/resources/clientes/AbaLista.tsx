@@ -20,6 +20,10 @@ type Props<T extends { id?: number }> = {
   podeSalvar: boolean;
   /** Botões extras no fim de cada linha (ex.: anexo do documento). */
   acoes?: (linha: T) => ReactNode;
+  /** Linhas só de leitura (ex.: orçamentos e pedidos no Histórico): sem lápis e sem lixeira. */
+  somenteLeitura?: (linha: T) => boolean;
+  /** Chave da linha na tabela (padrão: id). */
+  chave?: (linha: T) => string | number;
 };
 
 let proximoTemporario = -1;
@@ -29,7 +33,7 @@ let proximoTemporario = -1;
  * linha de inclusão em cima com o botão OK e a lista embaixo; lápis carrega a linha para alterar.
  * Linha nova recebe id negativo só na tela — vai sem id para a API, que cria (o Salvar da ficha grava tudo).
  */
-export function AbaLista<T extends { id?: number }>({ nova, linhas, onChange, campos, colunas, validar, vazio, podeSalvar, acoes }: Props<T>) {
+export function AbaLista<T extends { id?: number }>({ nova, linhas, onChange, campos, colunas, validar, vazio, podeSalvar, acoes, somenteLeitura, chave }: Props<T>) {
   const [rascunho, setRascunho] = useState<T>(nova);
   const [erro, setErro] = useState("");
   const editando = rascunho.id !== undefined;
@@ -94,13 +98,13 @@ export function AbaLista<T extends { id?: number }>({ nova, linhas, onChange, ca
             </thead>
             <tbody>
               {linhas.map((linha) => (
-                <tr key={linha.id} className={cn("border-b border-line", rascunho.id === linha.id && "bg-primary-light")}>
+                <tr key={chave ? chave(linha) : linha.id} className={cn("border-b border-line", !somenteLeitura?.(linha) && rascunho.id === linha.id && "bg-primary-light")}>
                   {colunas.map((c) => (
                     <td key={c.cabecalho} className={cn("px-2 py-2", c.classe)}>{c.exibir(linha)}</td>
                   ))}
                   <td className="whitespace-nowrap text-right">
                     {acoes?.(linha)}
-                    {podeSalvar && (
+                    {podeSalvar && !somenteLeitura?.(linha) && (
                       <>
                         <button type="button" aria-label="Alterar" onClick={() => { setRascunho(linha); setErro(""); }} className="inline-flex size-12 items-center justify-center text-primary hover:bg-primary-light md:size-9">
                           <IconPencil size={18} aria-hidden />

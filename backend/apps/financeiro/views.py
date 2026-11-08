@@ -42,6 +42,7 @@ class BancoViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ContaCorrenteViewSet(AuditoriaViewSet):
     funcionalidade = "contas_correntes"
+    funcionalidades_leitura = ["pedidos", "contas_receber"]  # cancelar pedido e receber
     queryset = ContaCorrente.objects.select_related("banco")
     serializer_class = ContaCorrenteSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -57,7 +58,7 @@ class ContaCorrenteViewSet(AuditoriaViewSet):
 
 class TipoPagamentoViewSet(AuditoriaViewSet):
     funcionalidade = "tipos_pagamento"
-    funcionalidades_leitura = ["orcamentos"]
+    funcionalidades_leitura = ["orcamentos", "pedidos"]
     queryset = TipoPagamento.objects.prefetch_related("condicoes")
     serializer_class = TipoPagamentoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

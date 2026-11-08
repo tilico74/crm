@@ -1,45 +1,21 @@
-import { IconPrinter } from "@tabler/icons-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 
 import { api, ApiError } from "@/lib/api";
 import { formatarCep, formatarCnpj, formatarCpf, formatarData, formatarMoeda, formatarTelefone } from "@/lib/mascaras";
 import type { Cliente, EnderecoCliente } from "@/resources/clientes/types";
+import type { Pedido } from "@/resources/pedidos/types";
 
+import { CabecalhoEmpresa, FolhaImpressao, Par, RodapeAssinaturas, Secao, type Empresa } from "./impressao";
 import type { Orcamento } from "./types";
 
-type Empresa = {
-  cnpj: string;
-  nome_fantasia: string;
-  razao_social: string;
-  email: string;
-  telefone: string;
-  logotipo: string | null;
-  enderecos: { tipo: string; cep: string; logradouro: string; numero: string; bairro: string; cidade: string; uf: string }[];
+type Tipo = "orcamento" | "pedido";
+const TEXTOS: Record<Tipo, { nome: string; titulo: string; api: string }> = {
+  orcamento: { nome: "Orçamento", titulo: "orçamento", api: "/orcamentos" },
+  pedido: { nome: "Pedido", titulo: "pedido", api: "/pedidos" },
 };
 
 const num = (v: string | number, casas = 2) => Number(v).toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: casas });
-const agora = () => new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "medium" }).replace(",", "");
-
-/** Faixa de título das seções, como na impressão da MarketUP (barra à esquerda e linha cinza). */
-function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
-  return (
-    <section className="mt-4 break-inside-avoid-page">
-      <h2 className="border-b-2 border-l-4 border-gray-400 bg-gray-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide">{titulo}</h2>
-      <div className="px-1 pt-1.5">{children}</div>
-    </section>
-  );
-}
-
-/** "Rótulo: valor" com o valor em negrito. */
-function Par({ rotulo, valor, className }: { rotulo: string; valor?: ReactNode; className?: string }) {
-  return (
-    <span className={className}>
-      <span className="text-gray-600">{rotulo}: </span>
-      <strong>{valor || "—"}</strong>
-    </span>
-  );
-}
 
 /** Endereço em bloco (cobrança ou entrega), para ficarem lado a lado. */
 function Endereco({ titulo, e }: { titulo: string; e?: EnderecoCliente }) {
@@ -81,70 +57,46 @@ function Endereco({ titulo, e }: { titulo: string; e?: EnderecoCliente }) {
  * entrega lado a lado, itens com a OBS de cada um, totais, pagamento, observações e assinaturas.
  */
 export function OrcamentoImpressao() {
+  return <DocumentoImpressao tipo="orcamento" />;
+}
+
+/** Mesmo modelo para o pedido (aprovado pelo usuário em 08/11/2026). */
+export function DocumentoImpressao({ tipo }: { tipo: Tipo }) {
+  const t = TEXTOS[tipo];
   const { id } = useParams();
-  const [o, setO] = useState<Orcamento | null>(null);
+  const [o, setO] = useState<Orcamento | Pedido | null>(null);
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [erro, setErro] = useState("");
 
   useEffect(() => {
     api<Empresa>("/empresa").then(setEmpresa, () => undefined);
-    api<Orcamento>(`/orcamentos/${id}`)
+    api<Orcamento | Pedido>(`${t.api}/${id}`)
       .then((orc) => {
         setO(orc);
-        document.title = `Orçamento ${orc.id}`;
+        document.title = `${t.nome} ${orc.id}`;
         if (orc.cliente) return api<Cliente>(`/clientes/${orc.cliente}`).then(setCliente);
       })
       .catch((e: ApiError) => setErro(e.message));
-  }, [id]);
+  }, [id, t]);
 
   if (erro) return <p className="p-8 text-error">{erro}</p>;
   if (!o) return <p className="p-8 text-ink-muted">Carregando…</p>;
 
   const cobranca = cliente?.enderecos.find((e) => e.id === o.endereco_faturamento);
   const entrega = cliente?.enderecos.find((e) => e.id === o.endereco_entrega);
-  const endEmpresa = empresa?.enderecos.find((e) => e.tipo === "faturamento" && e.logradouro);
   const quantidadeItens = o.itens.reduce((s, i) => s + Number(i.quantidade), 0);
   const documento = cliente ? (cliente.cnpj ? ["CNPJ", formatarCnpj(cliente.cnpj)] : cliente.cpf ? ["CPF", formatarCpf(cliente.cpf)] : null) : null;
 
   return (
-    <div className="min-h-screen bg-surface print:bg-white">
-      <style>{"@page { size: A4; margin: 10mm; } @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }"}</style>
-      <div className="mx-auto flex max-w-[210mm] justify-end gap-2 px-4 py-4 print:hidden">
-        <button type="button" onClick={() => window.print()} className="inline-flex min-h-12 items-center gap-2 rounded-xs bg-primary px-6 text-sm font-bold uppercase text-primary-foreground">
-          <IconPrinter size={20} aria-hidden /> Imprimir / Salvar PDF
-        </button>
-      </div>
+    <FolhaImpressao className="min-h-[297mm] print:min-h-[274mm]">
+        <p className="mb-2 text-sm">{t.nome}: {o.id}</p>
 
-      <article className="mx-auto flex min-h-[297mm] max-w-[210mm] flex-col bg-white p-8 text-[11px] leading-snug text-black shadow print:min-h-[274mm] print:max-w-none print:p-0 print:shadow-none">
-        <p className="mb-2 text-sm">Orçamento: {o.id}</p>
+        <CabecalhoEmpresa empresa={empresa} />
 
-        {/* Topo: logotipo à esquerda e dados da empresa à direita, como na MarketUP. */}
-        <header className="flex items-start justify-between gap-6">
-          <div className="flex h-20 w-44 items-center">
-            {empresa?.logotipo && <img src={empresa.logotipo} alt="" className="max-h-20 max-w-44 object-contain" />}
-          </div>
-          <div className="text-right text-[10px] uppercase leading-tight tracking-wide">
-            {empresa?.razao_social && <p>{empresa.razao_social}</p>}
-            {empresa?.nome_fantasia && <p>{empresa.nome_fantasia}</p>}
-            {empresa?.cnpj && <p>CNPJ: {formatarCnpj(empresa.cnpj)}</p>}
-            {endEmpresa && (
-              <>
-                <p className="normal-case">
-                  {endEmpresa.logradouro}, {endEmpresa.numero}
-                </p>
-                <p className="normal-case">
-                  {formatarCep(endEmpresa.cep)} - {endEmpresa.cidade} - {endEmpresa.uf}
-                </p>
-              </>
-            )}
-            {empresa?.telefone && <p>{formatarTelefone(empresa.telefone)}</p>}
-          </div>
-        </header>
-
-        <Secao titulo="Orçamento de venda">
+        <Secao titulo={`${t.nome} de venda`}>
           <div className="grid grid-cols-[6rem_1fr] gap-x-2 gap-y-0.5">
-            <span className="text-right text-gray-600">Orçamento:</span>
+            <span className="text-right text-gray-600">{t.nome}:</span>
             <strong>{o.id}</strong>
             <span className="text-right text-gray-600">Cliente:</span>
             <strong>{cliente?.nome ?? "—"}</strong>
@@ -163,7 +115,11 @@ export function OrcamentoImpressao() {
             <span className="flex flex-wrap gap-x-8">
               <strong>{formatarData(o.emissao)}</strong>
               <Par rotulo="Data de entrega" valor={formatarData(o.entrega)} />
-              <Par rotulo="Data de validade" valor={formatarData(o.validade)} />
+              {"validade" in o ? (
+                <Par rotulo="Data de validade" valor={formatarData(o.validade)} />
+              ) : (
+                <Par rotulo="Faturado em" valor={formatarData(o.data_faturamento)} />
+              )}
             </span>
             {o.vendedor_nome && (
               <>
@@ -182,7 +138,7 @@ export function OrcamentoImpressao() {
 
         {/* Itens: ocupam o espaço livre da folha e empurram o resto para o fim; com muitos itens, passam para a página seguinte. */}
         <div className="flex-1">
-        <Secao titulo="Itens do orçamento">
+        <Secao titulo={`Itens do ${t.titulo}`}>
           <table className="w-full border-collapse">
             <thead>
               <tr className="text-left text-[10px] font-bold">
@@ -224,7 +180,7 @@ export function OrcamentoImpressao() {
 
         {/* Fecho do orçamento: fica junto e vai para o pé da folha (o espaço dos itens empurra). */}
         <div className="break-inside-avoid">
-        <Secao titulo="Valor total de orçamento">
+        <Secao titulo={`Valor total de ${t.titulo}`}>
           <div className="grid grid-cols-5 items-end gap-2">
             {[
               ["Total dos Itens", o.subtotal ?? 0],
@@ -275,18 +231,8 @@ export function OrcamentoImpressao() {
           <p className="min-h-10 whitespace-pre-line">{o.observacao}</p>
         </Secao>
 
-        <footer className="mt-16 break-inside-avoid">
-          <div className="grid grid-cols-2 gap-12 px-10 text-center font-bold">
-            <p className="border-t border-gray-500 pt-1">Assinatura do Comprador</p>
-            <p className="border-t border-gray-500 pt-1">Assinatura do Recebedor</p>
-          </div>
-          <div className="mt-1 flex justify-between text-[10px]">
-            <span>{empresa?.nome_fantasia || empresa?.razao_social}</span>
-            <strong>Impresso em: {agora()}</strong>
-          </div>
-        </footer>
+        <RodapeAssinaturas empresa={empresa} assinaturas={["Assinatura do Comprador", "Assinatura do Recebedor"]} />
         </div>
-      </article>
-    </div>
+    </FolhaImpressao>
   );
 }

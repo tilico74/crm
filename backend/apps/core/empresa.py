@@ -62,7 +62,7 @@ class EmpresaSerializer(serializers.ModelSerializer):
 
 class EmpresaView(APIView):
     funcionalidade = "empresa"
-    funcionalidades_leitura = ["orcamentos"]  # cabeçalho da impressão do orçamento
+    funcionalidades_leitura = ["orcamentos", "pedidos"]  # cabeçalho da impressão do orçamento
     permission_classes = [PermissaoFuncionalidade]
 
     def get(self, request):

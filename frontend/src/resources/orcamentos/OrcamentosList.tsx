@@ -21,7 +21,7 @@ const COLUNAS: Column<OrcamentoLinha>[] = [
     // Número grande com o status embaixo e a faixa colorida à esquerda, como na MarketUP.
     cell: (o) => (
       <span className={cn("flex flex-col items-center border-l-[6px] py-2 md:-ml-1", STATUS[o.status].borda)}>
-        <span className="text-2xl font-normal tabular-nums text-primary">{o.id}</span>
+        <span className={cn("text-2xl font-normal tabular-nums", STATUS[o.status].cor)}>{o.id}</span>
         <span className={cn("text-xs font-semibold", STATUS[o.status].cor)}>{STATUS[o.status].rotulo}</span>
       </span>
     ),

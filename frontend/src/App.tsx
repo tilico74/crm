@@ -20,8 +20,10 @@ import { ClienteForm } from "./resources/clientes/ClienteForm";
 import { ClientesList } from "./resources/clientes/ClientesList";
 import { ListaPrecoForm } from "./resources/clientes/ListaPrecoForm";
 import { ListasPrecosList } from "./resources/clientes/ListasPrecosList";
-import { OrcamentoForm } from "./resources/orcamentos/OrcamentoForm";
-import { OrcamentoImpressao } from "./resources/orcamentos/OrcamentoImpressao";
+import { OrcamentoForm, PedidoForm } from "./resources/orcamentos/OrcamentoForm";
+import { DocumentoImpressao, OrcamentoImpressao } from "./resources/orcamentos/OrcamentoImpressao";
+import { PedidosList } from "./resources/pedidos/PedidosList";
+import { ReciboImpressao } from "./resources/pedidos/ReciboImpressao";
 import { OrcamentosList } from "./resources/orcamentos/OrcamentosList";
 import { InformacoesEmpresa } from "./resources/empresa/InformacoesEmpresa";
 import { ParametrosVenda } from "./resources/empresa/ParametrosVenda";
@@ -71,6 +73,8 @@ export default function App() {
                 <Route path="listas-de-precos/:id" element={<ListaPrecoForm />} />
                 <Route path="orcamentos" element={<OrcamentosList />} />
                 <Route path="orcamentos/:id" element={<OrcamentoForm />} />
+                <Route path="pedidos" element={<PedidosList />} />
+                <Route path="pedidos/:id" element={<PedidoForm />} />
               </Route>
               <Route path="ajustes">
                 <Route path="funcionarios" element={<FuncionariosList />} />
@@ -98,6 +102,8 @@ export default function App() {
               }
             >
               <Route path="vendas/orcamentos/:id/imprimir" element={<OrcamentoImpressao />} />
+              <Route path="vendas/pedidos/:id/imprimir" element={<DocumentoImpressao tipo="pedido" />} />
+              <Route path="vendas/recibos/:conta/imprimir" element={<ReciboImpressao />} />
             </Route>
 
             <Route

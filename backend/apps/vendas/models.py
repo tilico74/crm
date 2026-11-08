@@ -80,22 +80,15 @@ class ParametrosVenda(ModeloBase):
         return cls.objects.get_or_create(pk=1)[0]
 
 
-# ---- Orçamento de venda (sale_budget da MarketUP; context/marketup/telas-e-entidades.md) ----
+# ---- Documentos de venda: orçamento (sale_budget) e pedido (sale_order) da MarketUP ----
+# context/marketup/telas-e-entidades.md. Os dois têm o mesmo cabeçalho, itens e parcelas.
 
 
-class Orcamento(ModeloBase):
-    """Orçamento de venda. ID = SaleBudgetID (o número mostrado na tela)."""
+class DocumentoVenda(ModeloBase):
+    """Campos comuns ao orçamento e ao pedido. ID = número da MarketUP (SaleBudgetID / SaleOrderID)."""
 
-    class Status(models.IntegerChoices):
-        # Valores da MarketUP (filtro Status da listagem).
-        NOVO = 1, "Novo"
-        PEDIDO = 3, "Pedido"
-        CANCELADO = 4, "Cancelado"
-        CONCLUIDO = 6, "Concluído"
-
-    status = models.PositiveSmallIntegerField("status", choices=Status, default=Status.NOVO)
     cliente = models.ForeignKey(
-        "clientes.Cliente", verbose_name="cliente", on_delete=models.PROTECT, null=True, blank=True, related_name="orcamentos"
+        "clientes.Cliente", verbose_name="cliente", on_delete=models.PROTECT, null=True, blank=True, related_name="%(class)ss"
     )
     endereco_faturamento = models.ForeignKey(
         "clientes.EnderecoCliente", verbose_name="endereço para faturamento", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
@@ -104,12 +97,10 @@ class Orcamento(ModeloBase):
         "clientes.EnderecoCliente", verbose_name="endereço de entrega", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
     )
     vendedor = models.ForeignKey(
-        "usuarios.Funcionario", verbose_name="vendedor", on_delete=models.PROTECT, null=True, blank=True, related_name="orcamentos"
+        "usuarios.Funcionario", verbose_name="vendedor", on_delete=models.PROTECT, null=True, blank=True, related_name="%(class)ss"
     )
     emissao = models.DateField("emissão")
-    validade = models.DateField("validade", null=True, blank=True)
     entrega = models.DateField("entrega", null=True, blank=True)
-    data_pedido = models.DateTimeField("data do pedido", null=True, blank=True)
     data_cancelamento = models.DateTimeField("data do cancelamento", null=True, blank=True)
     observacao = models.TextField("comentários", blank=True)
 
@@ -122,24 +113,13 @@ class Orcamento(ModeloBase):
     outros_custos = models.DecimalField("outros custos", max_digits=14, decimal_places=2, default=0)
     total = models.DecimalField("total", max_digits=14, decimal_places=2, default=0)
 
-    # Pedido gerado (T203). Fica como número até o pedido existir no RDX.
-    pedido_id = models.BigIntegerField("pedido gerado", null=True, blank=True)
-
     class Meta:
-        db_table = "orcamento"
-        ordering = ["-id"]
-        verbose_name = "orçamento"
-        verbose_name_plural = "orçamentos"
-        indexes = [models.Index(fields=["status"]), models.Index(fields=["emissao"])]
-
-    def __str__(self):
-        return f"Orçamento {self.id}"
+        abstract = True
 
 
-class ItemOrcamento(models.Model):
-    """Item do orçamento (SaleBudgetItem): produto ou serviço, com as medidas na observação."""
+class ItemVenda(models.Model):
+    """Item do documento de venda: produto ou serviço, com as medidas na observação."""
 
-    orcamento = models.ForeignKey(Orcamento, on_delete=models.CASCADE, related_name="itens")
     produto = models.ForeignKey("catalogo.Produto", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
     servico = models.ForeignKey("catalogo.Servico", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
     descricao = models.CharField("descrição", max_length=300)  # cópia do nome na hora da venda
@@ -156,6 +136,62 @@ class ItemOrcamento(models.Model):
     ordem = models.PositiveIntegerField("ordem", default=0)
 
     class Meta:
+        abstract = True
+
+
+class ParcelaVenda(models.Model):
+    """Parcela gerada em "Gerar contas" (SaleBudgetInstallment / SaleOrderInstallment)."""
+
+    numero = models.PositiveSmallIntegerField("parcela")
+    quantidade = models.PositiveSmallIntegerField("de")
+    vencimento = models.DateField("vencimento")
+    valor = models.DecimalField("valor", max_digits=14, decimal_places=2)
+    descricao = models.CharField("observações", max_length=300, blank=True)
+    # Parcelas geradas no mesmo "Gerar contas" (PaymentGuid da MarketUP): aparecem juntas e saem juntas na lixeira.
+    grupo = models.CharField("grupo do pagamento", max_length=40, blank=True)
+    tipo_pagamento = models.ForeignKey("financeiro.TipoPagamento", on_delete=models.PROTECT, related_name="+")
+    condicao_pagamento = models.ForeignKey("financeiro.CondicaoPagamento", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
+
+    class Meta:
+        abstract = True
+
+
+# ---- Orçamento de venda (sale_budget) ----
+
+
+class Orcamento(DocumentoVenda):
+    """Orçamento de venda. ID = SaleBudgetID (o número mostrado na tela)."""
+
+    class Status(models.IntegerChoices):
+        # Valores da MarketUP (filtro Status da listagem).
+        NOVO = 1, "Novo"
+        PEDIDO = 3, "Pedido"
+        CANCELADO = 4, "Cancelado"
+        CONCLUIDO = 6, "Concluído"
+
+    status = models.PositiveSmallIntegerField("status", choices=Status, default=Status.NOVO)
+    validade = models.DateField("validade", null=True, blank=True)
+    data_pedido = models.DateTimeField("data do pedido", null=True, blank=True)
+    # Pedido gerado (SaleOrderID). Número solto: na carga, o pedido pode vir antes ou depois do orçamento.
+    pedido_id = models.BigIntegerField("pedido gerado", null=True, blank=True)
+
+    class Meta:
+        db_table = "orcamento"
+        ordering = ["-id"]
+        verbose_name = "orçamento"
+        verbose_name_plural = "orçamentos"
+        indexes = [models.Index(fields=["status"]), models.Index(fields=["emissao"])]
+
+    def __str__(self):
+        return f"Orçamento {self.id}"
+
+
+class ItemOrcamento(ItemVenda):
+    """Item do orçamento (SaleBudgetItem)."""
+
+    orcamento = models.ForeignKey(Orcamento, on_delete=models.CASCADE, related_name="itens")
+
+    class Meta:
         db_table = "orcamento_item"
         ordering = ["ordem", "id"]
         constraints = [
@@ -168,22 +204,92 @@ class ItemOrcamento(models.Model):
         verbose_name_plural = "itens do orçamento"
 
 
-class ParcelaOrcamento(models.Model):
-    """Parcela gerada em "Gerar contas" (SaleBudgetInstallment)."""
-
+class ParcelaOrcamento(ParcelaVenda):
     orcamento = models.ForeignKey(Orcamento, on_delete=models.CASCADE, related_name="parcelas")
-    numero = models.PositiveSmallIntegerField("parcela")
-    quantidade = models.PositiveSmallIntegerField("de")
-    vencimento = models.DateField("vencimento")
-    valor = models.DecimalField("valor", max_digits=14, decimal_places=2)
-    descricao = models.CharField("observações", max_length=300, blank=True)
-    # Parcelas geradas no mesmo "Gerar contas" (PaymentGuid da MarketUP): aparecem juntas e saem juntas na lixeira.
-    grupo = models.CharField("grupo do pagamento", max_length=40, blank=True)
-    tipo_pagamento = models.ForeignKey("financeiro.TipoPagamento", on_delete=models.PROTECT, related_name="+")
-    condicao_pagamento = models.ForeignKey("financeiro.CondicaoPagamento", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
 
     class Meta:
         db_table = "orcamento_parcela"
         ordering = ["vencimento", "numero", "id"]
         verbose_name = "parcela do orçamento"
         verbose_name_plural = "parcelas do orçamento"
+
+
+# ---- Pedido de venda (sale_order) ----
+
+
+class Pedido(DocumentoVenda):
+    """
+    Pedido de venda. ID = SaleOrderID. Status, entrega e financeiro com os números da MarketUP
+    (SaleOrderStatusEnum, SaleOrderStatusDeliveryEnum, SaleOrderStatusFinancialEnum).
+    "Atrasado" (entrega ou financeiro) não é gravado: sai da data na hora da consulta.
+    """
+
+    class Status(models.IntegerChoices):
+        NOVO = 1, "Novo"
+        FATURADO = 2, "Faturado"
+        FINALIZADO = 6, "Finalizado"
+        CANCELADO = 7, "Cancelado"
+
+    class Entrega(models.IntegerChoices):
+        PENDENTE = 1, "Pendente"
+        ENTREGUE = 2, "Entregue"
+        PARCIAL = 3, "Entregue parcialmente"
+        ATRASADO = 4, "Atrasado"
+        CANCELADO = 7, "Cancelado"
+
+    class Financeiro(models.IntegerChoices):
+        PENDENTE = 1, "Pendente"
+        PAGO = 2, "Pago"
+        PARCIAL = 3, "Pago parcialmente"
+        ATRASADO = 4, "Atrasado"
+        CANCELADO = 7, "Cancelado"
+
+    status = models.PositiveSmallIntegerField("status", choices=Status, default=Status.NOVO)
+    situacao_entrega = models.PositiveSmallIntegerField("status da entrega", choices=Entrega, default=Entrega.PENDENTE)
+    situacao_financeira = models.PositiveSmallIntegerField("status do pagamento", choices=Financeiro, default=Financeiro.PENDENTE)
+    orcamento = models.ForeignKey(
+        Orcamento, verbose_name="orçamento de origem", on_delete=models.SET_NULL, null=True, blank=True, related_name="pedidos"
+    )
+    data_faturamento = models.DateTimeField("faturado em", null=True, blank=True)
+    data_entregue = models.DateField("entregue em", null=True, blank=True)
+
+    class Meta:
+        db_table = "pedido"
+        ordering = ["-id"]
+        verbose_name = "pedido"
+        verbose_name_plural = "pedidos"
+        indexes = [models.Index(fields=["status"]), models.Index(fields=["emissao"])]
+
+    def __str__(self):
+        return f"Pedido {self.id}"
+
+
+class ItemPedido(ItemVenda):
+    """Item do pedido (SaleOrderItem). `entregue` = quantidade já entregue (Delivered)."""
+
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="itens")
+    entregue = models.DecimalField("entregue", max_digits=14, decimal_places=3, default=0)
+
+    class Meta:
+        db_table = "pedido_item"
+        ordering = ["ordem", "id"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(produto__isnull=False, servico__isnull=True) | models.Q(produto__isnull=True, servico__isnull=False),
+                name="pedido_item_produto_ou_servico",
+            )
+        ]
+        verbose_name = "item do pedido"
+        verbose_name_plural = "itens do pedido"
+
+
+class ParcelaPedido(ParcelaVenda):
+    """Parcela do pedido. Ao concluir a venda, cada uma vira uma conta a receber (EventID da MarketUP)."""
+
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="parcelas")
+
+    class Meta:
+        db_table = "pedido_parcela"
+        ordering = ["vencimento", "numero", "id"]
+        verbose_name = "parcela do pedido"
+        verbose_name_plural = "parcelas do pedido"

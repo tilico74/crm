@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from apps.core.api import AuditoriaViewSet
 from apps.core.documentos import limpar_cnpj, so_digitos
 
+from .historico import documentos_do_cliente
 from .models import Cliente, ListaPreco, TipoDocumento
 from .serializers import (
     ClienteListaSerializer,
@@ -24,7 +25,7 @@ class ListaPrecoViewSet(AuditoriaViewSet):
     """Vendas › Lista de preços / Tipos de clientes (client_type)."""
 
     funcionalidade = "listas_precos"
-    funcionalidades_leitura = ["clientes", "orcamentos"]
+    funcionalidades_leitura = ["clientes", "orcamentos", "pedidos"]
     queryset = ListaPreco.objects.prefetch_related("itens__produto", "itens__servico")
     serializer_class = ListaPrecoSerializer
     filter_backends = [filters.SearchFilter]
@@ -56,7 +57,7 @@ class TipoDocumentoViewSet(AuditoriaViewSet):
 
 class ClienteViewSet(AuditoriaViewSet):
     funcionalidade = "clientes"
-    funcionalidades_leitura = ["orcamentos"]
+    funcionalidades_leitura = ["orcamentos", "pedidos"]
     queryset = Cliente.objects.select_related("lista_preco")
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["nome", "apelido", "cpf", "cnpj", "telefone", "celular", "email"]
@@ -93,6 +94,22 @@ class ClienteViewSet(AuditoriaViewSet):
             instance.delete()
         except ProtectedError:
             raise ValidationError({"detail": "O cliente já tem movimentação. Marque Bloqueado em vez de excluir."})
+
+    @action(detail=True, methods=["get"])
+    def historico(self, request, pk=None):
+        """
+        Linhas automáticas da aba Histórico (orçamentos e pedidos), em páginas de 5 como a MarketUP.
+        ?page=N (1, 2…). As anotações digitadas vêm na própria ficha (campo `historico`).
+        """
+        cliente = self.get_object()
+        try:
+            pagina = max(1, int(request.query_params.get("page", 1)))
+            tamanho = min(50, max(1, int(request.query_params.get("page_size", 5))))
+        except ValueError:
+            raise ValidationError({"page": "Página inválida."})
+        linhas = documentos_do_cliente(cliente.id)
+        inicio = (pagina - 1) * tamanho
+        return Response({"count": len(linhas), "page": pagina, "page_size": tamanho, "results": linhas[inicio:inicio + tamanho]})
 
     @action(
         detail=True, methods=["post", "delete"], parser_classes=[MultiPartParser],

@@ -31,3 +31,25 @@ class OrcamentoAdmin(ModelAdmin):
     search_fields = ["id", "cliente__nome"]
     readonly_fields = ["criado_em", "criado_por", "atualizado_em", "atualizado_por"]
     inlines = [ItemOrcamentoInline, ParcelaOrcamentoInline]
+
+
+from .models import ItemPedido, ParcelaPedido, Pedido  # noqa: E402
+
+
+class ItemPedidoInline(TabularInline):
+    model = ItemPedido
+    extra = 0
+
+
+class ParcelaPedidoInline(TabularInline):
+    model = ParcelaPedido
+    extra = 0
+
+
+@admin.register(Pedido)
+class PedidoAdmin(ModelAdmin):
+    list_display = ["id", "status", "situacao_entrega", "situacao_financeira", "cliente", "emissao", "total"]
+    list_filter = ["status", "situacao_entrega", "situacao_financeira"]
+    search_fields = ["id", "cliente__nome"]
+    readonly_fields = ["criado_em", "criado_por", "atualizado_em", "atualizado_por"]
+    inlines = [ItemPedidoInline, ParcelaPedidoInline]

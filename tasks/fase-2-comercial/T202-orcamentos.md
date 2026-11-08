@@ -26,7 +26,7 @@ Orçamentos com validade, entrega, itens, desconto e status; número = SaleBudge
 - [x] PDF: `/vendas/orcamentos/{id}/imprimir` (A4, "Imprimir / Salvar PDF")
 - [x] Testes: `backend/tests/test_orcamentos.py`, `frontend/tests/orcamentos.test.ts`
 - [x] Teste na tela (Chrome, 08/11) com dados descartáveis, apagados depois
-- [ ] Converter em pedido ("Gerar pedido"): entra com a T203, que cria o pedido
+- [x] Converter em pedido ("Gerar pedido"): feito na T203 (salva, confirma e abre o pedido novo com a cópia; com o pedido gravado o orçamento fica Concluído)
 
 ## Conferência com a MarketUP (08/11/2026)
 
@@ -92,10 +92,10 @@ Diferenças que ficam: e-mail do orçamento, "Imprimir etiquetas", assinatura el
 
 ## Pendências
 
-- **Gerar pedido** (T203).
+- ~~**Gerar pedido** (T203)~~ feito na T203.
 - **Migração:** a exportação da listagem só traz número, status, nome do cliente, datas e total (sem itens nem ID do cliente). Os 3.872 orçamentos dependem da base completa (M002). A exportação também não traz os IDs dos endereços que os orçamentos usam.
 - **IDs:** até a carga, um orçamento criado no RDX recebe o nº 1, que existe na MarketUP. Não fazer orçamentos reais no RDX antes da carga.
 
 ## Dúvidas
 
-- Limite de crédito: na MarketUP a cliente do orçamento 3874 mostra crédito disponível de R$ 1.000,00 (o "Limite para novos clientes" dos Parâmetros de venda). A exportação de clientes não traz o limite, e no RDX os clientes importados ficaram com R$ 0,00. Aplicar R$ 1.000,00 a todos na carga, ou esperar a M002 com o limite de cada um?
+- ~~Limite de crédito dos clientes importados~~: resolvido em 08/11/2026. Vale o "Limite para novos clientes" de Ajustes › Parâmetros de venda (R$ 1.000,00), aplicado na carga a quem está sem limite.

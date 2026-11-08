@@ -42,3 +42,27 @@ class TipoPagamentoAdmin(ModelAdmin):
     search_fields = ["descricao"]
     readonly_fields = AUDITORIA
     inlines = [CondicaoPagamentoInline]
+
+
+
+from .models import ContaReceber, LancamentoCaixa, Recebimento  # noqa: E402
+
+
+class RecebimentoInline(TabularInline):
+    model = Recebimento
+    extra = 0
+    fk_name = "conta"
+
+
+@admin.register(ContaReceber)
+class ContaReceberAdmin(ModelAdmin):
+    list_display = ["id", "descricao", "parcela", "parcelas", "cliente", "vencimento", "valor", "saldo", "cancelada"]
+    list_filter = ["origem", "cancelada"]
+    search_fields = ["descricao", "cliente__nome", "origem_id"]
+    inlines = [RecebimentoInline]
+
+
+@admin.register(LancamentoCaixa)
+class LancamentoCaixaAdmin(ModelAdmin):
+    list_display = ["id", "data", "credito", "valor", "descricao", "conta_corrente"]
+    list_filter = ["credito", "conta_corrente"]

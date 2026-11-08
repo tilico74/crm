@@ -47,7 +47,7 @@ Seções do formulário, nesta ordem:
 | Dados bancários | Banco (lista oficial de bancos, 282) · Agência · Dígito · Conta · Dígito |
 | Documentos | Tipo (com "+") · Documento · anexo (ícone de envio) |
 | Crédito | Parcelas vencidas / a vencer / pagas · Total vencidas · Total a vencer · Total pagas · Limite de crédito · Limite utilizado · Limite disponível |
-| Histórico | Data · Descrição · Status (Pendente / Concluído). Orçamentos e pedidos entram sozinhos ("ORÇAMENTO Nº000826 · NOVO", "PEDIDO Nº… · CONCLUÍDO"), com a lupa abrindo o documento. Origens: orçamento −8, pedido 8, PDV 7, loja virtual 10; **OS não aparece**. Detalhes e plano no RDX: tarefa T206 |
+| Histórico | Data · Descrição · Status (Pendente / Concluído). Orçamentos e pedidos entram sozinhos ("ORÇAMENTO Nº000826 · NOVO", "PEDIDO Nº… · CONCLUÍDO"), com a lupa abrindo o documento. Origens: orçamento −8, pedido 8, PDV 7, loja virtual 10; **OS não aparece**. No RDX, a OS também fica fora (decisão de 08/11/2026). Plano: tarefa T206 |
 
 Botão no rodapé: "Adicionar pedido de venda".
 
@@ -99,6 +99,66 @@ Rodapé: Cancelar · Gerar pedido · Salvar · Salvar e voltar. Topo: listar, im
 Modelo: `SaleBudget` (Subtotal, Discount, GeneralDiscount, GeneralDiscountPercentage, Shipping, GeneralTaxes = outros custos, Total, IssueDate, ExpirationDate, DeliveryDate, OrderingDate, CancelDate, NoClient) · `SaleBudgetItem` (ItemID, ItemUnitID, Amount, Value, Discount, DiscountPercentage, Subtotal, Total, InFragmentation, Observation, Order) · `SaleBudgetInstallment` (Date, Value, InstallmentNumber, InstallmentCount, Description, PaymentTypeID, PaymentConditionID).
 
 Exportação da listagem (`ListaOrcamentoVenda.xls`): só Número, Status (Aberto/Pedido/Cancelado/Concluído), Cliente (nome), Data emissão, Data de validade, Valor total. Sem itens, sem ID do cliente.
+
+## Pedido (`sale_order`) — conferido em 08/11/2026, só leitura do código da tela
+
+### Listagem
+
+- Colunas: **Pedido** (número + rótulo: Novo, Faturado, Concluído, Cancelado, com a faixa colorida) · **Status** (emitido em, faturado em) · **Cliente** · **Entrega** (data + "status entrega") · **Valor** (+ "status pgto").
+- Rótulo da linha (`getListStatusClass`): Faturado/Finalizado vira **Concluído** quando não há itens a entregar (`ItemsToDelivery`) e o saldo a receber (`OrderBalance`) é zero; senão fica **Faturado**. Cancelado = 7; o resto = Novo.
+- Filtros: Status (Novo 1, Faturado/Concluído 2, Cancelado 7, Consignado 11), Cliente, Data de emissão, Data de faturamento, Nº da NF, Produtos, Valor, Tipo (Vendas/Consignadas), Entrega, Financeiro, Recorrentes.
+- Exemplos reais: 2990 Concluído (Entregue/Pago), 2987 Faturado (Entregue/**Atrasado**), 2978 Faturado (Entregue/Pago parcialmente).
+
+### Enums (`appErp.Types.Sale`)
+
+| Enum | Valores |
+| --- | --- |
+| `SaleOrderStatusEnum` | 1 Novo, 2 Faturado, 3 Entrega parcial, 4 Não conformidade, 5 Atrasado, 6 Finalizado, 7 Cancelado, 8 NF-e solicitada, 9 Aguardando pagamento, 10 Pago, 11 Consignado, 12 Enviado |
+| `SaleOrderStatusDeliveryEnum` | 1 Pendente, 2 Entregue, 3 Entrega parcial, 4 Atrasado, 5 Devolução parcial, 6 Devolvido, 7 Cancelado |
+| `SaleOrderStatusFinancialEnum` | 1 Pendente, 2 Pago, 3 Pago parcial, 4 Atrasado, 6 Devolvido, 7 Cancelado |
+| `SaleOrderOriginEnum` | 0 Pedido, 1 E-commerce, 2 Marketplace, 3 Ordem de serviço |
+| `FinancialOriginsEnum` | 7 Vendas, 11 OS… |
+| Permissões | Bill, Delivery, Cancel, Return, Email, Copy |
+
+### Ficha (`sale_order/detail/{SaleOrderID}`)
+
+- Mesmas seções do orçamento. Topo: quadro do status com "Entrega: X / Pagamento: Y" embaixo · # número · comentários · vendedor · emissão · entrega (com "usar hora"; sem validade). Pedido novo: entrega = hoje + "Entrega para pedido" dos Parâmetros de venda (10 dias).
+- **Vendedor:** caixa com lista que filtra enquanto digita (até 8 nomes) sobre `controller.sellerList` (funcionários: EmployeeID, UserID, OfficialName…; na RDX, 2 Esther, 25 Cristian, 1142 Nelson). Abre com o funcionário cujo `UserID` é o do usuário logado; `setSeller` grava `SellerID` = EmployeeID; trava depois de faturado. O ícone de pessoa ao lado abre "novo vendedor" (grava na hora: não clicar).
+- Botões do topo: **CONCLUIR** (Novo) ou **ENTREGAR / DEVOLVER** (faturado). Link "Ir para o orçamento de origem".
+- Rodapé do Novo: Cancelar · Consignar · **Concluir venda** · Salvar · Salvar e voltar. Do faturado: Cancelar · Devolver · Entregar.
+- Modelo `SaleOrder`: ClientID, Billing/DeliveryAddressID, SellerID, IssueDate, DeliveryDate, BillingDate, CancelDate, Subtotal, Shipping, Discount, GeneralTaxes, Total, Status, Origin, DeliveryStatus, FinancialStatus, Observation, SaleBudgetID, Items (com Delivered, Returned), Installments (Value, **Balance**, Interest, Discount, InstallmentNumber/Count, Date, Description, **EventID** = conta a receber, LastPaymentDate, PaymentTypeID, PaymentConditionID, PaymentGuid).
+
+### Concluir venda (`billCurrentOrder`)
+
+Na ordem: nome do cliente · endereço de faturamento · endereço de entrega (salvo retirada) · itens · parcelas cobrindo o total exato ("Forma/Condição de pagamento inválida") · endereço até 150 caracteres · boleto exige CPF/CNPJ e e-mail · "Verifique o valor das parcelas, total inválido" · "Existem parcelas vencidas" (vencimento antes da emissão) · **limite de crédito**: soma das parcelas a prazo (vencimento depois da emissão) ≤ crédito disponível do cliente, senão "O limite de crédito disponível para este cliente (…) está abaixo do valor (a prazo) a ser faturado (…)". Depois o servidor fatura (`SaleOrderBill`, bloqueia estoque negativo se configurado) e mostra "Pedido Nº X concluído com sucesso!".
+
+### Pagamento depois de concluir
+
+- Colunas Parcela · Vencimento (observações) · Valor · Saldo; "Valor pendente de pagamento (R$)".
+- Por parcela: **RECIBO** (`showDocket`), **RECEBER** (`goToEvent` → `receivable/detail/{EventID}`, desabilitado com saldo 0) e lupa.
+- Recibo "EMITIR RECIBO": enviar para (e-mail do cliente, CC, extra) · Recebi(emos) de · Data (`LastPaymentDate`) · Subtotal (Value), Juros, Desconto, **Valor total = Value − Balance + Interest − Discount** · importância por extenso · "Referente a: PEDIDO 2990 - PARCELA 1 / 1" · assinatura (usuário). Botões Cancelar / Enviar / Imprimir.
+
+### Conta a receber (`receivable/detail/{EventID}`, ex.: 12163 do pedido 2990)
+
+- `Event`: OriginID 7 (Vendas), OriginKey = SaleOrderID, OriginInstallment = parcela, ManagementAccountID 52 "Vendas via Pedido", Description "Pedido de Venda Nº 2990", sacado "CLIENTE: nome", emissão, vencimento, Value, Balance, faixa de status ("RECEBIDA").
+- "Efetuar recebimento": data, conta corrente, juros (+), descontos (−), valor recebido (=), efetuado em (forma), "Incluir recebimento". Histórico: data, recebido, desconto, juros, forma, conta, ícone do recibo e **X vermelho (estorno)**.
+- `EntryEvent` (Amortized, Value, Discount, Interest) e `Entry` no caixa (Date, Value, AccountID, PaymentTypeID, IsCredit).
+
+### Entregar e devolver
+
+- **Entregar** (`showDelivery` → `SaleOrderDeliveryController`): modal "ENTREGAR PEDIDO" — local de estoque, data de entrega, dados fiscais (NF-e, série, data), observações e, por item: pedido / estoque / entregue / quantidade a entregar, posição, lote, validade. Mensagem "Pedido Nº X entregue com sucesso!".
+- **Devolver** (`showReturnModal` → modal "DEVOLUÇÃO / TROCA"): local de estoque; por item entregue: trocar / devolver; "Produtos devolvidos" (quantidade, data, valor); Saldo pedido · Valor recebido · **Valor estorno · Data estorno · Estornar em** (forma). `doReturn` grava e mostra "Devolução/troca realizada com sucesso!"; o estorno é marcado pago se a data for hoje.
+
+### Cancelar (`checkOrderCancellation` → `cancelOrder` → `doCancel`)
+
+- Bloqueia se houver nota fiscal não cancelada. Confirma "Deseja mesmo cancelar este pedido? Esta operação não poderá ser desfeita!".
+- `cancelValue` = soma de (Value − Balance) das parcelas = já recebido; `cancelItemsCount` = itens de estoque entregues. Ambos zero → cancela direto. Senão, modal com valor do estorno, data (pago se hoje), local de estoque para o retorno e forma do estorno.
+- Resultado (pedido 2881): Status 7, entrega 7, financeiro 7 e **as parcelas saem do pedido** (contas a receber retiradas).
+
+### Orçamento → pedido (`orderCurrentBudget`)
+
+- Salva o orçamento, confirma "Deseja realmente gerar pedido para o orçamento X? Você será redirecionado para o novo pedido." e abre `sale_order/new` com a cópia (Status Novo, `SaleBudgetID`), ainda sem gravar.
+- Com o pedido gravado, o orçamento fica **Concluído (6)** com `SaleOrderID` e `OrderingDate` (3736 → 2881, 3868 → 2986, 3869 → 2990). **Continua Concluído mesmo com o pedido cancelado** (3736/2881).
 
 ## Exportação
 

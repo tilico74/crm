@@ -8,5 +8,6 @@ Cada decisão importante vira um arquivo `ADR-NNN-titulo.md` com: contexto, deci
 | 002 | Back-end em Python + Django | Aceito |
 | 003 | Front-end em React + Refine + shadcn/ui | Aceito |
 | 004 | IDs iguais aos da MarketUP | Aceito |
-| 005 | Padronização de nomes próprios e endereços | Aceito |
+| 005 | Padronização de nomes próprios e endereços | Substituído por ADR-007 |
 | 006 | CEP e localidades pelo back-end (ViaCEP e IBGE) | Aceito |
+| 007 | Padronização só em nomes de pessoas | Aceito |

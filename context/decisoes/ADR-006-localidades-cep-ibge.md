@@ -28,4 +28,4 @@ Os cadastros (clientes, funcionários, empresa, fornecedores) têm endereço. Di
 ## Consequências
 
 - O servidor precisa de acesso à internet (`viacep.com.br` e `servicodados.ibge.gov.br`, porta 443).
-- Endereços preenchidos pelo CEP ainda passam pela padronização de nomes (ADR-005) ao gravar.
+- Endereços preenchidos pelo CEP são gravados como vieram ou foram editados; endereço não é padronizado (ADR-007).

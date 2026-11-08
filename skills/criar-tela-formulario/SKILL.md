@@ -20,7 +20,7 @@ Referência: `context/design-system/layout-e-telas.md`. Modelo pronto para copia
 | `EnderecoField` + `BuscaEnderecoModal` | `frontend/src/components/` | Endereço com a lupa que abre a pesquisa "não sei o CEP" (skill `preencher-endereco`) |
 | `PageHeader`, `ConfirmDialog` | `frontend/src/components/` | Faixa de topo e confirmação de exclusão |
 | `useMe` | `frontend/src/app/useMe.ts` | `pode(rota, "alterar")`: sem permissão, campos desabilitados e sem botão Salvar |
-| `normalizarNome` | `frontend/src/lib/normalizarNome.ts` | Prévia da padronização ao sair do campo (skill `normalizar-nomes`) |
+| `normalizarNome` | `frontend/src/lib/normalizarNome.ts` | Prévia da padronização ao sair de campo de nome de pessoa (skill `normalizar-nomes`) |
 | `useOne`, `useCreate`, `useUpdate` (Refine 5) | — | Carregar e gravar; o estado de "salvando" é `mutation.isPending`; erros do DRF chegam em `erro.errors` por campo |
 
 Padrões da tela: barra de ações fixa embaixo (Voltar | Salvar e voltar | **Salvar**), aviso de sucesso/erro com `role="status"`, botões que não enviam o formulário com `type="button"`.
@@ -32,7 +32,7 @@ Padrões da tela: barra de ações fixa embaixo (Voltar | Salvar e voltar | **Sa
 3. Seções com título de 30px e 40px entre elas.
 4. Grade de 4 colunas no computador, 2 no tablet e 1 no celular.
 5. Campos de 34px no computador e 48px em tela de toque. Rótulo em PT Sans Narrow, 4px acima do campo.
-6. Campos de nome e endereço aplicam `normalizar-nomes` ao sair do campo (prévia) e no back-end (gravação). Endereço segue a skill `preencher-endereco` (CEP, UF e cidade). Documentos e telefones usam `MaskedField` (skill `mascaras-e-formatos`).
+6. Campos de nome de pessoa aplicam `normalizar-nomes` ao sair do campo (prévia) e no back-end (gravação); razão social, nome fantasia e endereço ficam como digitados. Endereço segue a skill `preencher-endereco` (CEP, UF e cidade). Documentos e telefones usam `MaskedField` (skill `mascaras-e-formatos`).
 7. As mensagens de erro dizem o que está errado e como corrigir. Exemplo: "CNPJ inválido. Confira os 14 dígitos."
 
 ## Verificação

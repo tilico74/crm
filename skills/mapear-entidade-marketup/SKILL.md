@@ -26,4 +26,4 @@ saidas: tabela de mapeamento em context/marketup/campos/<entidade>.md
 
 - Número de linhas da tabela = número de colunas da exportação.
 - A chave primária é o ID da MarketUP.
-- Campos de nome e endereço citam `normalizar-nomes`.
+- Campos de nome de pessoa citam `normalizar-nomes`; razão social, nome fantasia e endereço vêm sem transformação.

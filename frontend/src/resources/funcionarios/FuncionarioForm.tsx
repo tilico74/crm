@@ -58,7 +58,7 @@ export function FuncionarioForm() {
     error: erros[campo],
   });
   // Prévia da padronização ao sair do campo; o back-end aplica de novo ao gravar.
-  const nomeProprio = (campo: "nome" | "apelido" | "razao_social" | "nome_fantasia") => ({
+  const nomeProprio = (campo: "nome" | "apelido") => ({
     ...texto(campo),
     onBlur: () => set(campo, normalizarNome(dados[campo])),
   });
@@ -132,8 +132,8 @@ export function FuncionarioForm() {
           {juridica ? (
             <>
               <MaskedField key="cnpj" label="CNPJ" {...mascarado("cnpj", "cnpj")} />
-              <TextField label="Razão Social" span={2} {...nomeProprio("razao_social")} />
-              <TextField label="Nome Fantasia" span={2} {...nomeProprio("nome_fantasia")} />
+              <TextField label="Razão Social" span={2} {...texto("razao_social")} />
+              <TextField label="Nome Fantasia" span={2} {...texto("nome_fantasia")} />
               <TextField label="Inscrição Estadual" {...texto("inscricao_estadual")} />
               <TextField label="Inscrição Municipal" {...texto("inscricao_municipal")} />
             </>

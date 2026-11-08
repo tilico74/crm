@@ -21,7 +21,7 @@ saidas: o que a skill entrega
 
 | Skill | Quando usar |
 | --- | --- |
-| `normalizar-nomes` | Antes de gravar nome de pessoa, empresa ou endereço |
+| `normalizar-nomes` | Antes de gravar nome de pessoa (empresa e endereço ficam como digitados) |
 | `preencher-endereco` | Em todo formulário com endereço: `CepField` (CEP preenche o endereço) e `EnderecoField` (lupa que abre a pesquisa por UF, cidade e rua) |
 | `mascaras-e-formatos` | Ao mostrar ou receber CPF, CNPJ, RG, CEP, telefone, dinheiro, percentual ou data |
 | `mapear-entidade-marketup` | Ao criar uma tabela que recebe dados da MarketUP |

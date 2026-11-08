@@ -24,7 +24,7 @@ Em todo formulário com endereço: cliente, funcionário, empresa, fornecedor, e
    - O modal tem UF e Cidade (listas do IBGE, já abrem com as do formulário) e o campo Endereço; a partir da 3ª letra pesquisa e mostra a lista com rolagem (rua, complemento, bairro, cidade/UF, CEP).
    - Clicar num endereço fecha o modal e chama `onEndereco`. No formulário: `onEndereco={(e) => mudarEndereco({ cep: limpar("cep", e.cep), ...camposDoCep(e) })}`.
 4. **UF:** lista de `listarEstados()` (sigla + nome). **Cidade:** lista de `listarMunicipios(uf)`, carregada ao escolher a UF; com busca por digitação (são até 853 municípios por estado).
-5. **Endereço digitado à mão:** continua permitido. Ao gravar, a padronização de nomes vale para rua, complemento, bairro e cidade (`normalizar-nomes`).
+5. **Endereço digitado à mão:** continua permitido. Ao gravar, rua, complemento, bairro e cidade ficam como digitados; endereço não é padronizado (ADR-007).
 6. **Celular:** o CEP usa `inputMode="numeric"` e campo de 48px.
 
 ## Verificação

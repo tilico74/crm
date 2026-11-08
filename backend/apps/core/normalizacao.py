@@ -13,7 +13,7 @@ SIGLAS = frozenset(
     ["CIA", "CNPJ", "CPF", "EIRELI", "EPI", "EPP", "LTDA", "ME", "MEI", "ONG", "RDX", "S.A.", "S/A", "SA"]
 )
 ROMANOS = frozenset(
-    "X V I XX II IV IX XV XI VI VII III XII XIV VIII XIII".split()
+    "I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX".split()
 )
 
 _RODOVIA = re.compile(r"^[^\W\d_]+-\d+$")
@@ -21,12 +21,16 @@ _PONTUACAO_FINAL = re.compile(r"[,;]+$")
 
 
 def _capitalize(word: str) -> str:
-    # Primeira letra maiúscula; depois de "-" ou "'" a próxima também.
+    # Primeira letra maiúscula (não o primeiro caractere: "7a" -> "7A"); depois de "-" ou "'" a próxima também.
     result = []
     upper_next = True
     for char in word:
-        result.append(char.upper() if upper_next else char.lower())
-        upper_next = char in "-'"
+        if char.isalpha():
+            result.append(char.upper() if upper_next else char.lower())
+            upper_next = False
+        else:
+            result.append(char)
+            upper_next = upper_next or char in "-'"
     return "".join(result)
 
 

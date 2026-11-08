@@ -2,7 +2,6 @@ from django.conf import settings
 from django.db import models
 
 from .documentos import validar_cnpj
-from .normalizacao import normalizar_nome
 
 
 class ModeloBase(models.Model):
@@ -79,8 +78,6 @@ class Empresa(ModeloBase):
 
     def save(self, *args, **kwargs):
         self.pk = 1
-        for campo in ("nome_fantasia", "razao_social"):
-            setattr(self, campo, normalizar_nome(getattr(self, campo)) or "")
         super().save(*args, **kwargs)
 
     @classmethod
@@ -114,8 +111,5 @@ class EnderecoEmpresa(models.Model):
         verbose_name_plural = "endereços da empresa"
 
     def save(self, *args, **kwargs):
-        # Endereços padronizados como nomes próprios (ADR-005).
-        for campo in ("logradouro", "complemento", "bairro", "cidade"):
-            setattr(self, campo, normalizar_nome(getattr(self, campo)) or "")
         self.uf = self.uf.upper()
         super().save(*args, **kwargs)

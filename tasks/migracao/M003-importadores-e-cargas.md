@@ -14,7 +14,7 @@ Scripts de importação por entidade, na ordem das dependências, gravando o ID 
 ## Critérios de aceite
 
 - Cada carga validada com a skill validar-migracao
-- Log com o valor original dos nomes normalizados
+- Log com o valor original dos nomes de pessoas padronizados (empresa e endereço entram como vieram)
 - Sequências ajustadas para MAX(id) + 1
 
 ## Checklist

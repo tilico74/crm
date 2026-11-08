@@ -9,7 +9,6 @@ import { PageHeader } from "@/components/PageHeader";
 import { api, ApiError } from "@/lib/api";
 import { camposDoCep, listarEstados, listarMunicipios, type Estado, type Municipio } from "@/lib/localidades";
 import { limpar, type TipoMascara } from "@/lib/mascaras";
-import { normalizarNome } from "@/lib/normalizarNome";
 import { cn } from "@/lib/utils";
 
 const ROTA = "/ajustes/empresa";
@@ -182,8 +181,8 @@ export function InformacoesEmpresa() {
           </div>
 
           <div className="grid flex-1 grid-cols-1 gap-x-7 gap-y-4 sm:grid-cols-2">
-            <TextField label="Nome fantasia" span={2} {...texto("nome_fantasia")} onBlur={() => set("nome_fantasia", normalizarNome(dados.nome_fantasia))} />
-            <TextField label="Razão social" span={2} {...texto("razao_social")} onBlur={() => set("razao_social", normalizarNome(dados.razao_social))} />
+            <TextField label="Nome fantasia" span={2} {...texto("nome_fantasia")} />
+            <TextField label="Razão social" span={2} {...texto("razao_social")} />
             <TextField label="E-mail" type="email" className="normal-case" {...texto("email")} />
             <MaskedField label="Telefone" {...mascarado("telefone", "telefone")} />
             <SelectField
@@ -258,7 +257,6 @@ export function InformacoesEmpresa() {
               {...extra}
             />
           );
-          const padronizar = (nome: keyof Endereco) => ({ onBlur: () => setEndereco(end.tipo, nome, normalizarNome(end[nome])) });
           return (
             <fieldset key={end.tipo} className="mb-8">
               <legend className="mb-3 text-sm font-bold uppercase text-primary-dark">{TITULO_ENDERECO[end.tipo]}</legend>
@@ -273,16 +271,15 @@ export function InformacoesEmpresa() {
                   span={2}
                   value={end.logradouro}
                   onChange={(v) => setEndereco(end.tipo, "logradouro", v)}
-                  {...padronizar("logradouro")}
                   onEndereco={(achado) => mudarEndereco(end.tipo, { cep: limpar("cep", achado.cep), ...camposDoCep(achado) })}
                   uf={end.uf}
                   cidade={end.cidade}
                   disabled={!podeAlterar}
                 />
                 {campo("numero", "Nº")}
-                {campo("complemento", "Complemento", padronizar("complemento"))}
-                {campo("bairro", "Bairro", padronizar("bairro"))}
-                {campo("cidade", "Cidade", { ...padronizar("cidade"), list: `municipios-${end.uf}` })}
+                {campo("complemento", "Complemento")}
+                {campo("bairro", "Bairro")}
+                {campo("cidade", "Cidade", { list: `municipios-${end.uf}` })}
                 <SelectField
                   label="UF"
                   value={end.uf}

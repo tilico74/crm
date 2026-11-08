@@ -14,7 +14,7 @@ Cadastro de clientes (PF e PJ), contatos, endereços e lista de preço, com ID =
 ## Critérios de aceite
 
 - Campos e ordem iguais aos da MarketUP
-- Nome e endereço normalizados ao gravar
+- Nome de cliente pessoa física e de contato padronizados ao gravar; razão social, nome fantasia e endereço como digitados (ADR-007)
 - CPF e CNPJ validados
 - Listagem e formulário no modelo MarketUP
 

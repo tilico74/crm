@@ -31,7 +31,7 @@ def test_empresa_traz_os_tres_enderecos_na_ordem(admin):
     assert [e["tipo"] for e in dados["enderecos"]] == ["faturamento", "entregas", "correspondencias"]
 
 
-def test_empresa_grava_padronizado_e_auditado(admin):
+def test_empresa_grava_como_digitado_e_auditado(admin):
     api, usuario = admin
     resposta = api.patch(
         "/api/empresa",
@@ -43,10 +43,10 @@ def test_empresa_grava_padronizado_e_auditado(admin):
     )
     assert resposta.status_code == 200, resposta.data
     empresa = Empresa.atual()
-    assert empresa.razao_social == "Nelson Cristiano Santos Jucoski MEI"
+    assert empresa.razao_social == "NELSON CRISTIANO SANTOS JUCOSKI MEI"  # nomes gravados como chegam (ADR-007)
     assert empresa.atualizado_por == usuario
     endereco = empresa.enderecos.get(tipo="faturamento")
-    assert (endereco.logradouro, endereco.cidade, endereco.uf) == ("Rua das Flores", "Palhoça", "SC")
+    assert (endereco.logradouro, endereco.cidade, endereco.uf) == ("RUA DAS FLORES", "palhoça", "SC")
     assert Empresa.objects.count() == 1
 
 

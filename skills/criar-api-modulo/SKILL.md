@@ -17,13 +17,13 @@ Modelos prontos para copiar: `backend/apps/usuarios/` (lista com ficha) e `backe
 | `PermissaoFuncionalidade` | `backend/apps/core/api.py` | Confere a matriz grupo × funcionalidade × ação. A view declara `funcionalidade = "<codigo>"`; GET = acessar, POST = adicionar, PUT/PATCH = alterar, DELETE = excluir. `funcionalidades_leitura = [...]` libera só a leitura por outra funcionalidade |
 | `Paginacao` | `backend/apps/core/pagination.py` | 25 por página; o front pede mais com `page_size` ("Ver mais registros") |
 | `CpfField`, `CnpjField`, `RgField`, `CepField`, `TelefoneField` | `backend/apps/core/documentos.py` | Campos do serializador: aceitam com ou sem máscara, gravam limpo, validam (skill `mascaras-e-formatos`) |
-| `normalizar_nome` | `backend/apps/core/normalizacao.py` | Chame no `save()` do modelo para nomes e endereços (skill `normalizar-nomes`) |
+| `normalizar_nome` | `backend/apps/core/normalizacao.py` | Chame no `save()` do modelo só para nomes de pessoas (skill `normalizar-nomes`) |
 | Localidades | `backend/apps/core/localidades.py` | CEP, estados e municípios (ADR-006); não chame ViaCEP/IBGE de outro lugar |
 
 ## Passo a passo
 
 1. **Campos:** do mapa da MarketUP (`mapear-entidade-marketup`). Tabela e colunas em português (`db_table`), `id` = ID da MarketUP (BIGINT). Dinheiro e percentual em `DecimalField`, nunca float.
-2. **Modelo** herdando `ModeloBase`. Nome de pessoa, empresa e endereço: `normalizar_nome` no `save()`. CPF e CNPJ com `validators=[validar_cpf]` / `[validar_cnpj]` (`documentos.py`).
+2. **Modelo** herdando `ModeloBase`. Nome de pessoa: `normalizar_nome` no `save()`; razão social, nome fantasia e endereço ficam como digitados. CPF e CNPJ com `validators=[validar_cpf]` / `[validar_cnpj]` (`documentos.py`).
 3. **Funcionalidade:** se o módulo é novo na matriz, crie numa migração de dados (como `usuarios/0003_grupos_e_funcionalidades.py`) e dê acesso total ao grupo Administrador.
 4. **Serializador:** documentos e telefones com os campos de `documentos.py`. Mensagens de erro em português, dizendo como corrigir.
 5. **View:** `AuditoriaViewSet` com `funcionalidade = "..."`, `SearchFilter` nos campos de busca da MarketUP. Exclusão que quebraria histórico: devolva 400 com o motivo (ex.: grupo com usuários, conta do sistema).

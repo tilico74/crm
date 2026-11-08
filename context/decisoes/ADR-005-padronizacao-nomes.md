@@ -1,6 +1,6 @@
 # ADR-005: Padronização de nomes próprios e endereços
 
-- **Status:** Aceito em 07/11/2026.
+- **Status:** Aceito em 07/11/2026. **Substituído por ADR-007** em 08/11/2026: só nomes de pessoas são padronizados.
 
 ## Decisão
 

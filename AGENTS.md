@@ -13,7 +13,7 @@ Leia este arquivo inteiro antes de qualquer alteração.
 
 1. **Na dúvida, siga a MarketUP.** Telas, fluxos, nomes de campos, medidas e IDs seguem a MarketUP. As únicas exceções estão em `context/01-principios.md`.
 2. **IDs iguais aos da MarketUP.** Nunca gere uma nova numeração para registros migrados (`context/regras-de-negocio/ids-marketup.md`).
-3. **Nomes padronizados.** Todo nome próprio e endereço passa pela skill `skills/normalizar-nomes/SKILL.md` antes de ser gravado.
+3. **Nomes de pessoas padronizados.** Todo nome de pessoa passa pela skill `skills/normalizar-nomes/SKILL.md` antes de ser gravado. Razão social, nome fantasia e endereço ficam como digitados (ADR-007).
 4. **Tudo roda em Docker.** Nenhuma dependência é instalada direto na máquina (`context/decisoes/ADR-001-docker.md`).
 5. **Sem propaganda.** Nenhuma tela mostra anúncio, banner promocional ou oferta.
 6. **Uma tarefa por vez.** Trabalhe só no escopo da tarefa aberta. Ao terminar, marque o checklist e mude o status no cabeçalho.

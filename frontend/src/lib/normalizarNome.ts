@@ -8,18 +8,25 @@ export const PARTICULAS = new Set(
 export const SIGLAS = new Set([
   "CIA", "CNPJ", "CPF", "EIRELI", "EPI", "EPP", "LTDA", "ME", "MEI", "ONG", "RDX", "S.A.", "S/A", "SA",
 ]);
-export const ROMANOS = new Set("X V I XX II IV IX XV XI VI VII III XII XIV VIII XIII".split(" "));
+export const ROMANOS = new Set("I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX".split(" "));
 
 const RODOVIA = /^\p{L}+-\d+$/u;
 const PONTUACAO_FINAL = /[,;]+$/;
 
-// Primeira letra maiúscula; depois de "-" ou "'" a próxima também.
+const LETRA = /\p{L}/u;
+
+// Primeira letra maiúscula (não o primeiro caractere: "7a" -> "7A"); depois de "-" ou "'" a próxima também.
 function capitalize(word: string): string {
   let result = "";
   let upperNext = true;
   for (const char of word) {
-    result += upperNext ? char.toUpperCase() : char.toLowerCase();
-    upperNext = char === "-" || char === "'";
+    if (LETRA.test(char)) {
+      result += upperNext ? char.toUpperCase() : char.toLowerCase();
+      upperNext = false;
+    } else {
+      result += char;
+      upperNext = upperNext || char === "-" || char === "'";
+    }
   }
   return result;
 }

@@ -153,7 +153,7 @@ class Funcionario(ModeloBase):
         return self.nome
 
     def save(self, *args, **kwargs):
-        # Nomes próprios padronizados antes de gravar (ADR-005).
-        for campo in ("nome", "apelido", "razao_social", "nome_fantasia"):
+        # Só nome de pessoa é padronizado (ADR-007); razão social e nome fantasia ficam como digitados.
+        for campo in ("nome", "apelido"):
             setattr(self, campo, normalizar_nome(getattr(self, campo)) or "")
         super().save(*args, **kwargs)

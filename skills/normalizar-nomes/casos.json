@@ -44,22 +44,26 @@
     "SA"
   ],
   "romanos": [
-    "X",
-    "V",
     "I",
-    "XX",
     "II",
+    "III",
     "IV",
-    "IX",
-    "XV",
-    "XI",
+    "V",
     "VI",
     "VII",
-    "III",
-    "XII",
-    "XIV",
     "VIII",
-    "XIII"
+    "IX",
+    "X",
+    "XI",
+    "XII",
+    "XIII",
+    "XIV",
+    "XV",
+    "XVI",
+    "XVII",
+    "XVIII",
+    "XIX",
+    "XX"
   ],
   "casos": [
     {
@@ -161,6 +165,18 @@
     {
       "entrada": "QUADRA B LOTE 3",
       "esperado": "Quadra B Lote 3"
+    },
+    {
+      "entrada": "quadra 7a lote 3",
+      "esperado": "Quadra 7A Lote 3"
+    },
+    {
+      "entrada": "rua 2º sargento",
+      "esperado": "Rua 2º Sargento"
+    },
+    {
+      "entrada": "papa joao xvi",
+      "esperado": "Papa Joao XVI"
     }
   ]
 }

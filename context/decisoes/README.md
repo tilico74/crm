@@ -9,3 +9,4 @@ Cada decisão importante vira um arquivo `ADR-NNN-titulo.md` com: contexto, deci
 | 003 | Front-end em React + Refine + shadcn/ui | Aceito |
 | 004 | IDs iguais aos da MarketUP | Aceito |
 | 005 | Padronização de nomes próprios e endereços | Aceito |
+| 006 | CEP e localidades pelo back-end (ViaCEP e IBGE) | Aceito |

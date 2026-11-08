@@ -159,6 +159,14 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "0.1.0",
 }
 
+# Cache no Redis (banco 1; o 0 é da fila do Celery). Usado nas consultas de CEP e IBGE.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": env("CACHE_URL", default="redis://redis:6379/1"),
+    }
+}
+
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://redis:6379/0")
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_TIMEZONE = TIME_ZONE

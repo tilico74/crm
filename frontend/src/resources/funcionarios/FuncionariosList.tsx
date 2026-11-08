@@ -7,6 +7,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { DataTable, type Column } from "@/components/DataTable";
 import { ListToolbar } from "@/components/ListToolbar";
 import { PageHeader } from "@/components/PageHeader";
+import { formatarTelefone } from "@/lib/mascaras";
 
 import type { Funcionario } from "./types";
 
@@ -15,8 +16,8 @@ const ROTA = "/ajustes/funcionarios";
 const COLUNAS_FUNCIONARIOS: Column<Funcionario>[] = [
   { header: "Nome", cell: (f) => f.nome, className: "md:w-[34%]" },
   { header: "Código", cell: (f) => f.codigo },
-  { header: "Telefone", cell: (f) => f.telefone },
-  { header: "Celular", cell: (f) => f.celular },
+  { header: "Telefone", cell: (f) => formatarTelefone(f.telefone), className: "tabular-nums" },
+  { header: "Celular", cell: (f) => formatarTelefone(f.celular), className: "tabular-nums" },
   { header: "Email", cell: (f) => <span className="normal-case">{f.email}</span>, className: "break-all" },
 ];
 

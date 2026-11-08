@@ -19,6 +19,8 @@ type Props<T extends { id: number }> = {
   onDelete?: (row: T) => void;
   onMore?: () => void;
   empty?: string;
+  /** Linha pode ser excluída? (ex.: contas do sistema não podem). Sem a função, todas podem. */
+  canDelete?: (row: T) => boolean;
 };
 
 /**
@@ -26,7 +28,7 @@ type Props<T extends { id: number }> = {
  * linhas com lápis e lixeira à direita e "Ver mais registros" no fim.
  * No celular as linhas viram cartões.
  */
-export function DataTable<T extends { id: number }>({ columns, rows, loading, total, onEdit, onDelete, onMore, empty }: Props<T>) {
+export function DataTable<T extends { id: number }>({ columns, rows, loading, total, onEdit, onDelete, onMore, empty, canDelete }: Props<T>) {
   return (
     <div className="mx-auto max-w-[992px] px-4 pb-10 xl:px-0">
       <table className="w-full border-collapse text-sm text-ink">
@@ -59,7 +61,7 @@ export function DataTable<T extends { id: number }>({ columns, rows, loading, to
                       <IconPencil size={22} aria-hidden />
                     </button>
                   )}
-                  {onDelete && (
+                  {onDelete && (canDelete?.(row) ?? true) && (
                     <button type="button" onClick={() => onDelete(row)} aria-label="Excluir" className="inline-flex size-12 items-center justify-center text-error hover:opacity-80">
                       <IconTrash size={22} aria-hidden />
                     </button>

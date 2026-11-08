@@ -69,7 +69,10 @@ async function refreshAccess(): Promise<boolean> {
 export async function api<T = unknown>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
   const tokens = getTokens();
   const headers = new Headers(init.headers);
-  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  // FormData (envio de arquivo) define o próprio Content-Type com o separador.
+  if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
   if (tokens) headers.set("Authorization", `Bearer ${tokens.access}`);
 
   const response = await fetch(`${API_URL}${path}`, { ...init, headers });

@@ -3,8 +3,9 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 
 import { useMe } from "@/app/useMe";
-import { FormSection, SelectField, SwitchField, TextAreaField, TextField } from "@/components/form";
+import { FormSection, MaskedField, SelectField, SwitchField, TextAreaField, TextField } from "@/components/form";
 import { PageHeader } from "@/components/PageHeader";
+import type { TipoMascara } from "@/lib/mascaras";
 import { normalizarNome } from "@/lib/normalizarNome";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,13 @@ export function FuncionarioForm() {
     onChange: (e: { target: { value: string } }) => set(campo, e.target.value as never),
     error: erros[campo],
   });
+  // Documentos e telefones: valor limpo no estado, máscara na tela (src/lib/mascaras.ts).
+  const mascarado = (campo: "cpf" | "rg" | "cnpj" | "telefone" | "celular", mascara: TipoMascara) => ({
+    mascara,
+    value: dados[campo],
+    onChange: (v: string) => set(campo, v),
+    error: erros[campo],
+  });
   // Prévia da padronização ao sair do campo; o back-end aplica de novo ao gravar.
   const nomeProprio = (campo: "nome" | "apelido" | "razao_social" | "nome_fantasia") => ({
     ...texto(campo),
@@ -60,6 +68,9 @@ export function FuncionarioForm() {
     setErros({});
     setAviso("");
     const corpo = { ...dados, aniversario: dados.aniversario || null };
+    // Só vai o documento do tipo escolhido: um CPF escondido (pessoa jurídica) não pode travar o salvamento.
+    if (corpo.tipo_pessoa === "J") Object.assign(corpo, { cpf: "", rg: "", rg_emissor: "", rg_uf: "" });
+    else Object.assign(corpo, { cnpj: "", razao_social: "", nome_fantasia: "", inscricao_estadual: "", inscricao_municipal: "" });
     if (!corpo.senha) delete corpo.senha;
     const opcoes = {
       onSuccess: ({ data }: { data: Funcionario }) => {
@@ -120,7 +131,7 @@ export function FuncionarioForm() {
           <TextField label="Apelido" {...nomeProprio("apelido")} />
           {juridica ? (
             <>
-              <TextField label="CNPJ" inputMode="numeric" {...texto("cnpj")} />
+              <MaskedField key="cnpj" label="CNPJ" {...mascarado("cnpj", "cnpj")} />
               <TextField label="Razão Social" span={2} {...nomeProprio("razao_social")} />
               <TextField label="Nome Fantasia" span={2} {...nomeProprio("nome_fantasia")} />
               <TextField label="Inscrição Estadual" {...texto("inscricao_estadual")} />
@@ -128,8 +139,8 @@ export function FuncionarioForm() {
             </>
           ) : (
             <>
-              <TextField label="CPF" inputMode="numeric" {...texto("cpf")} />
-              <TextField label="RG" {...texto("rg")} />
+              <MaskedField key="cpf" label="CPF" {...mascarado("cpf", "cpf")} />
+              <MaskedField key="rg" label="RG" {...mascarado("rg", "rg")} />
               <TextField label="Emissor" {...texto("rg_emissor")} />
               <TextField label="UF" maxLength={2} {...texto("rg_uf")} onBlur={() => set("rg_uf", dados.rg_uf.toUpperCase())} />
               <SelectField
@@ -142,8 +153,8 @@ export function FuncionarioForm() {
               <TextField label="Aniversário" type="date" {...texto("aniversario")} />
             </>
           )}
-          <TextField label="Telefone" type="tel" {...texto("telefone")} />
-          <TextField label="Celular" type="tel" {...texto("celular")} />
+          <MaskedField label="Telefone" {...mascarado("telefone", "telefone")} />
+          <MaskedField label="Celular" {...mascarado("celular", "telefone")} />
           <TextField label="Email" type="email" span={2} className="normal-case" {...texto("email")} />
           <TextField label="Site" span={2} {...texto("site")} />
           <TextAreaField

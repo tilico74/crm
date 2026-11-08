@@ -1,6 +1,8 @@
 from django.db import transaction
 from rest_framework import serializers
 
+from apps.core.documentos import CnpjField, CpfField, RgField, TelefoneField
+
 from .models import ACOES, Funcionalidade, Funcionario, Grupo, PermissaoGrupo, Usuario
 
 
@@ -31,6 +33,12 @@ class FuncionarioSerializer(serializers.ModelSerializer):
     Ficha do funcionário com o acesso embutido, como no formulário da MarketUP:
     login, senha e grupo gravam no Usuario ligado ao funcionário.
     """
+
+    cpf = CpfField()
+    rg = RgField()
+    cnpj = CnpjField()
+    telefone = TelefoneField()
+    celular = TelefoneField()
 
     login = serializers.CharField(source="usuario.username", default="", allow_blank=True)
     senha = serializers.CharField(write_only=True, required=False, allow_blank=True, style={"input_type": "password"})

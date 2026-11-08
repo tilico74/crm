@@ -20,3 +20,6 @@ migracao/dados/
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Arquivos enviados pelo sistema (logotipo etc.)
+backend/media/

@@ -195,3 +195,27 @@ Importa **para** a MarketUP a partir do ContaAzul (ligado) e do Bling. Não expo
 22 colunas: Código · Nome/Razão Social · Apelido/Nome fantasia · Sexo (M ou F) · CPF · RG · Expedição RG · UF do RG · CNPJ · IE · Telefone · Celular · Fax · Email · Site · Endereço · Número · Complemento · Bairro · Cidade · Estado · CEP.
 
 **Não traz o `EmployeeID`** (o ID que aparece em `employee/detail/{id}`), nem login, perfil, "Vendedor?" ou comissão. "Código" é um campo livre, preenchido em poucos registros. **A exportação da tela não basta para manter os IDs**: depende do pedido formal da base completa (M002).
+
+## Ajustes › Financeiro em detalhe (levantado em 07/11/2026)
+
+### Conta gerencial (`management_account/detail/{id}`)
+
+Ficha: Tipo (Saída / Entrada) · Conta origem (conta pai, ex.: "Saídas") · Posição relativa (número) · Código referência (ex.: "1.0") · Classificação DRE · Nome · CC débito · CC crédito (texto, contas contábeis) · Compras (sim/não) · Ativo.
+
+Classificação DRE das saídas: Aluguel, condomínio e IPTU · Custo da mercadoria · Despesas financeiras · Gerais e administrativas · Impostos e devoluções · Pessoal · Pro labore · Propaganda e marketing · Utilidades. Entradas: Receitas financeiras · Entradas.
+
+58 contas na RDX. A maioria é padrão do sistema (lixeira desativada); as criadas pela RDX podem ser excluídas: Ajuste de caixa (entrada e saída), Alimentação, Estacionamento, Financiamento veículo, Impostos MEI, Taxa cartão de crédito, Veículo IPVA / licenciamento / seguro.
+
+### Conta corrente (`account`)
+
+Edição na própria linha da lista (sem ficha): Nome · Interna (sim/não) · Banco (lista oficial de bancos) · Agência - dígito · Conta - dígito · Principal · Ativo · confirmar/cancelar. 6 contas na RDX (Caixa e PDV 1 internas; bancos e Mercado Pago externas).
+
+### Tipo de pagamento (`payment_type/detail/{id}`)
+
+Ficha: Descrição · Início contrato · Fim contrato · Carência · Ativo? · Utiliza no PDV? (fora do escopo).
+
+**Condições de pagamento** (várias por tipo): Descrição · Parcelas · Intervalo (dias) · 1ª parcela (dias) · % Adm · % Antecipação · Valor fixo · Classificação · Compras? · Vendas?. Ex.: no cartão de crédito, "À vista" (1 parcela), "Entrada + 02x sem juros" (3 parcelas, intervalo 30, 1ª em 0), "Sem entrada + 02x" (2 parcelas, intervalo 30, 1ª em 30), "Entrada + 45 dias".
+
+### Informações da empresa
+
+Bloco do CNPJ com a situação (Ativo) em destaque · Nome fantasia · Razão social · E-mail · Telefone · Área de atuação (lista) · Inscrição estadual · Logotipo · WhatsApp · Inscrição municipal · Domínio (MarketUP, não se aplica) · Fuso horário · Ajustar horário de verão? · Endereços: Faturamento, Entregas, Correspondências (CEP, logradouro, número, bairro, cidade, UF) · Produtor rural? · Certificado digital.

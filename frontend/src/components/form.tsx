@@ -1,5 +1,6 @@
-import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { useId, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
+import { formatar, limpar, TAMANHO_MAXIMO, TECLADO, validar, type TipoMascara } from "@/lib/mascaras";
 import { cn } from "@/lib/utils";
 
 // Peças do formulário no modelo MarketUP (skills/criar-tela-formulario/SKILL.md):
@@ -106,5 +107,50 @@ export function SwitchField({ label, checked, onChange }: { label: string; check
       />
       <span className="font-label text-sm text-ink">{label}</span>
     </label>
+  );
+}
+
+type MaskedProps = Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> & {
+  label: string;
+  /** Tipo de máscara (src/lib/mascaras.ts). */
+  mascara: TipoMascara;
+  /** Valor LIMPO (como vem e vai para a API). */
+  value: string | null | undefined;
+  onChange: (limpo: string) => void;
+  error?: string[] | string;
+  span?: 1 | 2 | 3 | 4;
+};
+
+/**
+ * Campo com máscara: mostra formatado enquanto digita, entrega o valor limpo
+ * e valida ao sair do campo (CPF, CNPJ, CEP, telefone). O back-end valida de novo.
+ */
+export function MaskedField({ label, mascara, value, onChange, error, span, required, onBlur, className, ...props }: MaskedProps) {
+  const [aviso, setAviso] = useState("");
+  return (
+    <Field label={label} error={error ?? (aviso || undefined)} span={span} required={required}>
+      {(id, describedBy) => (
+        <input
+          id={id}
+          aria-invalid={!!(error || aviso)}
+          aria-describedby={describedBy}
+          required={required}
+          inputMode={TECLADO[mascara]}
+          maxLength={TAMANHO_MAXIMO[mascara]}
+          autoComplete="off"
+          className={cn(controle, "tabular-nums", className)}
+          {...props}
+          value={formatar(mascara, value)}
+          onChange={(e) => {
+            setAviso("");
+            onChange(limpar(mascara, e.target.value));
+          }}
+          onBlur={(e) => {
+            setAviso(validar(mascara, value ?? ""));
+            onBlur?.(e);
+          }}
+        />
+      )}
+    </Field>
   );
 }

@@ -10,6 +10,7 @@ Navegador / celular
   backend   (Django 5 + Django REST Framework)
    │      │        │
    db   redis    emissor fiscal (Focus NFe / eNotas)
+                  ViaCEP e IBGE (CEP, estados, municípios — ADR-006)
 (PostgreSQL) │
           worker (Celery: importações, comissões, e-mails)
 ```

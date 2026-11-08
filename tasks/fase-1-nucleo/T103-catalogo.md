@@ -4,7 +4,7 @@
 | --- | --- |
 | Status | A fazer |
 | Depende de | T101, M001 |
-| Skills | `mapear-entidade-marketup`, `criar-tela-listagem`, `criar-tela-formulario` |
+| Skills | `criar-api-modulo`, `mapear-entidade-marketup`, `criar-tela-listagem`, `criar-tela-formulario` |
 | Contexto | `context/03-modelo-de-dados.md` |
 
 ## Objetivo

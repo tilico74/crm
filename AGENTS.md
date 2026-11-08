@@ -23,5 +23,8 @@ Leia este arquivo inteiro antes de qualquer alteração.
 
 - Idioma: português do Brasil em textos, telas e documentação. Código (variáveis, funções) em inglês; tabelas e colunas do banco em português, conforme `context/03-modelo-de-dados.md`.
 - Datas: `DD/MM/AAAA` na tela, ISO 8601 no banco e na API.
+- CPF, CNPJ, RG, CEP e telefone: máscara só na tela, valor limpo no banco (`context/regras-de-negocio/formatos.md`, skill `mascaras-e-formatos`).
+- **CEP em qualquer formulário: componente `CepField`**, que preenche endereço, bairro, cidade e UF ao completar 8 dígitos válidos (ADR-006, skill `preencher-endereco`).
+- **Endereço em qualquer formulário: componente `EnderecoField`**, com a lupa que abre o modal de pesquisa por UF, cidade e rua para quem não sabe o CEP.
 - Dinheiro: `R$ 1.234,56` na tela; decimal com 2 casas no banco, nunca float.
 - Novas decisões de arquitetura viram um ADR em `context/decisoes/`.

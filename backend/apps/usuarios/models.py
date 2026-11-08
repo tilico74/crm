@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from apps.core.models import ModeloBase
+from apps.core.documentos import validar_cnpj, validar_cpf
 from apps.core.normalizacao import normalizar_nome
 
 # Modelo da MarketUP (context/marketup/telas-e-entidades.md, seção Ajustes):
@@ -117,7 +118,7 @@ class Funcionario(ModeloBase):
     bloqueado = models.BooleanField("bloqueado", default=False)
     nome = models.CharField("nome", max_length=150)
     apelido = models.CharField("apelido", max_length=80, blank=True)
-    cpf = models.CharField("CPF", max_length=14, blank=True)
+    cpf = models.CharField("CPF", max_length=14, blank=True, validators=[validar_cpf])
     rg = models.CharField("RG", max_length=20, blank=True)
     rg_emissor = models.CharField("emissor", max_length=20, blank=True)
     rg_uf = models.CharField("UF", max_length=2, blank=True)
@@ -125,7 +126,7 @@ class Funcionario(ModeloBase):
     aniversario = models.DateField("aniversário", null=True, blank=True)
     razao_social = models.CharField("razão social", max_length=150, blank=True)
     nome_fantasia = models.CharField("nome fantasia", max_length=150, blank=True)
-    cnpj = models.CharField("CNPJ", max_length=18, blank=True)
+    cnpj = models.CharField("CNPJ", max_length=18, blank=True, validators=[validar_cnpj])
     inscricao_estadual = models.CharField("inscrição estadual", max_length=20, blank=True)
     inscricao_municipal = models.CharField("inscrição municipal", max_length=20, blank=True)
     telefone = models.CharField("telefone", max_length=20, blank=True)

@@ -6,7 +6,21 @@ saidas: tela de listagem responsiva
 ---
 # Criar tela de listagem
 
-Referência: `context/design-system/layout-e-telas.md`, `mobile-tablet.md` e o componente ListPage do Design System RDX.
+Referência: `context/design-system/layout-e-telas.md` e `mobile-tablet.md`. Modelo pronto para copiar: `frontend/src/resources/funcionarios/FuncionariosList.tsx`.
+
+## Componentes prontos (use, não recrie)
+
+| Peça | Arquivo | Para quê |
+| --- | --- | --- |
+| `PageHeader` | `frontend/src/components/PageHeader.tsx` | Faixa de topo: módulo, título, "ocultar" e a barra de ferramentas como filho |
+| `ListToolbar` | `frontend/src/components/ListToolbar.tsx` | "Localizar por" (`onSearch`, com espera de 300 ms), filtros, blocos e "Adicionar novo" (`onAdd`; sem `onAdd` o botão some) |
+| `DataTable` | `frontend/src/components/DataTable.tsx` | Tabela da MarketUP: `columns`, `rows`, `onEdit`, `onDelete`, `canDelete`, "Ver mais registros" (`onMore`), cartões no celular |
+| `ConfirmDialog` | `frontend/src/components/ConfirmDialog.tsx` | Confirmação antes de excluir (o foco começa em Cancelar) |
+| `useMe` | `frontend/src/app/useMe.ts` | `pode(rota, "adicionar" | "alterar" | "excluir")`: esconda o botão que a pessoa não pode usar |
+| `useList` (Refine) | `frontend/src/app/providers.ts` | Dados da API Django: `pagination.pageSize` cresce no "Ver mais"; busca vai como `filters: [{ field: "q", ... }]`; parâmetros extras em `meta.params` |
+| `formatar*` | `frontend/src/lib/mascaras.ts` | CPF, CNPJ, telefone, CEP, R$, % e datas nas colunas (skill `mascaras-e-formatos`) |
+
+Rota nova: registre em `frontend/src/App.tsx` e ligue a rota à funcionalidade em `FUNCIONALIDADE_POR_ROTA` (`frontend/src/app/menu.ts`); o menu e o acesso seguem as permissões sozinhos.
 
 ## Passo a passo
 
@@ -24,7 +38,8 @@ Referência: `context/design-system/layout-e-telas.md`, `mobile-tablet.md` e o c
    - linhas de 110px;
    - faixa de status de 10px na cor do status;
    - número do registro (ID MarketUP) com 24px;
-   - lápis de editar na última coluna.
+   - lápis de editar na última coluna;
+   - CPF, CNPJ, telefone, dinheiro e data formatados com a skill `mascaras-e-formatos`.
 6. Celular: as linhas viram cartões e o "Adicionar novo" fica fixo embaixo.
 
 ## Verificação

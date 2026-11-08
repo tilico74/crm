@@ -4,7 +4,7 @@
 | --- | --- |
 | Status | A fazer |
 | Depende de | T101, T104, M001 |
-| Skills | `mapear-entidade-marketup`, `criar-tela-listagem`, `criar-tela-formulario`, `normalizar-nomes` |
+| Skills | `criar-api-modulo`, `mapear-entidade-marketup`, `criar-tela-listagem`, `criar-tela-formulario`, `normalizar-nomes`, `preencher-endereco`, `mascaras-e-formatos` |
 | Contexto | `context/03-modelo-de-dados.md`, `context/regras-de-negocio/` |
 
 ## Objetivo

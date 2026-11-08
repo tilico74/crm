@@ -21,22 +21,11 @@ const COLUNAS_FUNCIONARIOS: Column<Funcionario>[] = [
   { header: "Email", cell: (f) => <span className="normal-case">{f.email}</span>, className: "break-all" },
 ];
 
-const COLUNAS_USUARIOS: Column<Funcionario>[] = [
-  { header: "Login", cell: (f) => <span className="normal-case">{f.login}</span> },
-  { header: "Nome", cell: (f) => f.nome, className: "md:w-[36%]" },
-  { header: "Grupo", cell: (f) => f.grupo_nome ?? "—" },
-  {
-    header: "Situação",
-    cell: (f) =>
-      f.bloqueado ? <span className="font-semibold text-error">Bloqueado</span> : <span className="font-semibold text-success">Ativo</span>,
-  },
-];
-
 /**
- * Ajustes › Funcionários (e Ajustes › Usuários, que é a mesma lista só com quem tem login),
+ * Ajustes › Funcionários
  * com as colunas da MarketUP.
  */
-export function FuncionariosList({ usuarios = false }: { usuarios?: boolean }) {
+export function FuncionariosList() {
   const navigate = useNavigate();
   const { pode } = useMe();
   const [termo, setTermo] = useState("");
@@ -49,12 +38,11 @@ export function FuncionariosList({ usuarios = false }: { usuarios?: boolean }) {
     pagination: { currentPage: 1, pageSize },
     sorters: [{ field: "nome", order: "asc" }],
     filters: [{ field: "q", operator: "eq", value: termo }],
-    meta: usuarios ? { params: { com_login: 1 } } : undefined,
   });
 
   return (
     <>
-      <PageHeader eyebrow="Empresa" title={usuarios ? "Usuários" : "Funcionários"}>
+      <PageHeader eyebrow="Empresa" title="Funcionários">
         <ListToolbar
           onSearch={(t) => {
             setTermo(t);
@@ -65,12 +53,12 @@ export function FuncionariosList({ usuarios = false }: { usuarios?: boolean }) {
       </PageHeader>
 
       <DataTable
-        columns={usuarios ? COLUNAS_USUARIOS : COLUNAS_FUNCIONARIOS}
+        columns={COLUNAS_FUNCIONARIOS}
         rows={result.data}
         total={result.total}
         loading={query.isLoading}
         onEdit={pode(ROTA, "alterar") ? (f) => navigate(`${ROTA}/${f.id}`) : undefined}
-        onDelete={!usuarios && pode(ROTA, "excluir") ? setExcluir : undefined}
+        onDelete={pode(ROTA, "excluir") ? setExcluir : undefined}
         onMore={() => setPageSize((n) => n + 25)}
         empty={termo ? `Nenhum funcionário encontrado para "${termo}".` : "Nenhum funcionário cadastrado."}
       />

@@ -8,6 +8,10 @@ import { AppShell } from "./app/layout/AppShell";
 import { Login } from "./app/Login";
 import { authProvider, dataProvider } from "./app/providers";
 import { ThemeProvider } from "./app/theme";
+import { CategoriaForm } from "./resources/catalogo/CategoriaForm";
+import { CategoriasList } from "./resources/catalogo/CategoriasList";
+import { MarcasList } from "./resources/catalogo/MarcasList";
+import { UnidadesList } from "./resources/catalogo/UnidadesList";
 import { InformacoesEmpresa } from "./resources/empresa/InformacoesEmpresa";
 import { ParametrosVenda } from "./resources/empresa/ParametrosVenda";
 import { ContaGerencialForm } from "./resources/financeiro/ContaGerencialForm";
@@ -17,6 +21,7 @@ import { TipoPagamentoForm } from "./resources/financeiro/TipoPagamentoForm";
 import { TiposPagamentoList } from "./resources/financeiro/TiposPagamentoList";
 import { FuncionarioForm } from "./resources/funcionarios/FuncionarioForm";
 import { FuncionariosList } from "./resources/funcionarios/FuncionariosList";
+import { UsuariosList } from "./resources/funcionarios/UsuariosList";
 import { Permissoes } from "./resources/permissoes/Permissoes";
 
 export default function App() {
@@ -38,10 +43,16 @@ export default function App() {
               }
             >
               <Route index element={<Inicio />} />
+              <Route path="catalogo">
+                <Route path="unidades" element={<UnidadesList />} />
+                <Route path="marcas" element={<MarcasList />} />
+                <Route path="categorias" element={<CategoriasList />} />
+                <Route path="categorias/:id" element={<CategoriaForm />} />
+              </Route>
               <Route path="ajustes">
                 <Route path="funcionarios" element={<FuncionariosList />} />
                 <Route path="funcionarios/:id" element={<FuncionarioForm />} />
-                <Route path="usuarios" element={<FuncionariosList usuarios />} />
+                <Route path="usuarios" element={<UsuariosList />} />
                 <Route path="permissoes" element={<Permissoes />} />
                 <Route path="empresa" element={<InformacoesEmpresa />} />
                 <Route path="parametros-de-venda" element={<ParametrosVenda />} />

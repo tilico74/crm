@@ -26,7 +26,7 @@ Uma tarefa por arquivo, agrupadas por fase. A base tecnológica foi instalada na
 | T005 | [Qualidade e integração contínua](fase-0-fundacao/T005-qualidade-e-integracao-continua.md) | A fazer | T003, T004 |
 | T101 | [Usuários e permissões](fase-1-nucleo/T101-usuarios-e-permissoes.md) | Concluída | T003, T004 |
 | T102 | [Clientes](fase-1-nucleo/T102-clientes.md) | A fazer | T101, T104, M001 |
-| T103 | [Catálogo](fase-1-nucleo/T103-catalogo.md) | A fazer | T101, M001 |
+| T103 | [Catálogo](fase-1-nucleo/T103-catalogo.md) | Em andamento | T101, M001 |
 | T104 | [Normalização de nomes](fase-1-nucleo/T104-normalizacao-de-nomes.md) | Em andamento | T003, T004 |
 | T105 | [Ajustes › Empresa](fase-1-nucleo/T105-ajustes-empresa.md) | Concluída | T101, T104 |
 | T106 | [Ajustes › Financeiro](fase-1-nucleo/T106-ajustes-financeiro.md) | Concluída | T101 |

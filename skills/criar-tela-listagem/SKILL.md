@@ -15,6 +15,7 @@ Referência: `context/design-system/layout-e-telas.md` e `mobile-tablet.md`. Mod
 | `PageHeader` | `frontend/src/components/PageHeader.tsx` | Faixa de topo: módulo, título, "ocultar" e a barra de ferramentas como filho |
 | `ListToolbar` | `frontend/src/components/ListToolbar.tsx` | "Localizar por" (`onSearch`, com espera de 300 ms), filtros, blocos e "Adicionar novo" (`onAdd`; sem `onAdd` o botão some) |
 | `DataTable` | `frontend/src/components/DataTable.tsx` | Tabela da MarketUP: `columns`, `rows`, `onEdit`, `onDelete`, `canDelete`, "Ver mais registros" (`onMore`), cartões no celular |
+| `TabelaEditavel` | `frontend/src/components/TabelaEditavel.tsx` | Listas simples com **edição na própria linha** (Unidades, Marcas, subcategorias): `colunas` com `exibir`/`editar`, `nova`, `onSalvar`, `onExcluir`, `podeEditar`/`podeExcluir`, `acoesExtras`; "Adicionar novo" chama `ref.adicionar()`. Enter confirma, Esc cancela. Modelos: `frontend/src/resources/catalogo/UnidadesList.tsx` e `CategoriaForm.tsx` |
 | `ConfirmDialog` | `frontend/src/components/ConfirmDialog.tsx` | Confirmação antes de excluir (o foco começa em Cancelar) |
 | `useMe` | `frontend/src/app/useMe.ts` | `pode(rota, "adicionar" | "alterar" | "excluir")`: esconda o botão que a pessoa não pode usar |
 | `useList` (Refine) | `frontend/src/app/providers.ts` | Dados da API Django: `pagination.pageSize` cresce no "Ver mais"; busca vai como `filters: [{ field: "q", ... }]`; parâmetros extras em `meta.params` |

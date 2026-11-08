@@ -30,4 +30,5 @@ Mapear campo a campo cada entidade da MarketUP, a partir das exportações ofici
 
 ## Dúvidas
 
-- [ ] A exportação de Funcionários da tela não traz o EmployeeID (ver `context/marketup/telas-e-entidades.md`). Verificar se as outras exportações (Clientes, Produtos) trazem o ID; se não, a migração depende da base completa (M002).
+- [x] A exportação de Funcionários da tela não traz o EmployeeID (ver `context/marketup/telas-e-entidades.md`). Verificar se as outras exportações (Clientes, Produtos) trazem o ID; se não, a migração depende da base completa (M002).
+  - **Conferido em 08/11/2026:** Produtos e Serviços também não trazem o ID (ItemID, ServiceID). A migração depende da base completa (M002). Alternativa, se a MarketUP não entregar: as telas mostram o ID (coluna ID em Marcas e Unidades; endereço `item/detail/{id}` nos produtos), daria para montar a tabela ID × código de barras lendo as telas, com autorização do contrato.

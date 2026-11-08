@@ -17,8 +17,8 @@ Solicitar formalmente a exportação completa dos dados (portabilidade, LGPD art
 
 ## Checklist
 
-- [ ] Pedido enviado
-- [ ] Exportações das telas baixadas (Funcionários: feito em 07/11/2026, sem o ID; faltam Clientes, Produtos, Serviços, Orçamentos)
+- [ ] Pedido enviado (texto pronto: `M002-pedido-a-marketup.md`)
+- [ ] Exportações das telas baixadas (Funcionários 07/11, Produtos e Serviços 08/11: nenhuma traz o ID; faltam Clientes e Orçamentos)
 - [ ] Conferir contrato e aviso prévio
 
 ## Dúvidas

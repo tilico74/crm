@@ -219,3 +219,29 @@ Ficha: Descrição · Início contrato · Fim contrato · Carência · Ativo? ·
 ### Informações da empresa
 
 Bloco do CNPJ com a situação (Ativo) em destaque · Nome fantasia · Razão social · E-mail · Telefone · Área de atuação (lista) · Inscrição estadual · Logotipo · WhatsApp · Inscrição municipal · Domínio (MarketUP, não se aplica) · Fuso horário · Ajustar horário de verão? · Endereços: Faturamento, Entregas, Correspondências (CEP, logradouro, número, bairro, cidade, UF) · Produtor rural? · Certificado digital.
+
+### Usuários (`configuration/security/users`) — conferido em 08/11/2026
+
+Lista sem barra de ferramentas: **Usuário** (nome, e-mail | telefone) · **Permissões** (grupo do ERP; grupo do PDV fora do escopo) · **Comissão** (%) · **Ativo?** (interruptor na própria linha; o dono da conta não tem). Botão "Adicionar novo usuário" no fim. 5 usuários na RDX, um deles técnico (integração).
+
+### Catálogo › Marcas, Unidades e Categorias — conferido em 08/11/2026
+
+| Tela | Lista | Edição |
+| --- | --- | --- |
+| Marcas (`brand`) | ID (BrandID) · Nome, em ordem de nome | Na própria linha (nome) + "Enviar foto" / "Remover" (imagem da marca) |
+| Unidades de medida (`item_unit`) | ID · Sigla · Nome, em ordem de nome | Na própria linha. **Do sistema (não editam nem excluem):** 1 UN Unidade, 2 CX Caixa, 3 FD Fardo, 4 KG Quilograma, 5 HF Hora/Funcionário. Da RDX: 6 M², 7 M Metro, 8 ML Milheiro, 9 CT Cento, 10 BR Barra |
+| Categorias (`category/detail/{id}`) | Nome | Ficha: nome da categoria + lista de **Subcategorias** ("Incluir subcategoria", editar e excluir na linha) + Salvar / Salvar e voltar |
+
+Marcas na RDX (ID · nome): 1 Equiplex · 2 Metalúrgica Verdadeiro · 3 Trifixi · 4 Guardtec · 5 BKT · 6 HT · 7 Sportnet · 8 Alutim · 9 Sportnet (duplicada) · 10 Protectpool.
+
+### Produtos (`Produtos.xlsx`, baixado em 08/11/2026)
+
+40 colunas: Código de barras · Tipo de produto · Descrição · Preço de custo · Preço venda varejo · Preço venda atacado · Quantidade mínima atacado · Unidade · Ativo · Categoria · Subcategoria · Movimenta estoque · Estoque mínimo · Quantidade em estoque · Marca · Modelo · Código balança · Código interno · Tags · Tipo (fiscal) · NCM · CFOP · Origem · CEST · Categoria PDV · Botão PDV · campos da loja virtual (fora do escopo) · Altura · Largura · Profundidade · Peso · Descrição do produto · Garantia · Itens inclusos · Especificações.
+
+- **Não traz o `ItemID`.** Todos os 190 têm código de barras (pode servir de conferência, não de ID).
+- **Só 5 de 190 têm NCM** e 3 têm CEST: sem NCM não se emite NF-e de produto.
+- 80 produtos sem categoria; 19 sem marca.
+
+### Serviços (`Servicos.xls`)
+
+Código · Nome · Unidade · Custo · Valor · Ativo. **Não traz o `ServiceID`.**

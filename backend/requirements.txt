@@ -1,0 +1,27 @@
+# Back-end RDX (ADR-002). Nova dependência entra aqui e na imagem, nunca só no contêiner.
+
+# Framework
+Django~=5.2.0
+djangorestframework~=3.16.0
+djangorestframework-simplejwt~=5.5.0
+django-cors-headers~=4.7
+django-filter~=25.1
+django-unfold~=0.60
+drf-spectacular~=0.28.0
+
+# Configuração e banco
+django-environ~=0.12.0
+psycopg[binary]~=3.2
+
+# Tarefas em segundo plano
+celery[redis]~=5.5.0
+
+# Arquivos (S3 / MinIO)
+django-storages[s3]~=1.14
+
+# Servidor de produção
+gunicorn~=23.0
+
+# Testes
+pytest~=8.4
+pytest-django~=4.11

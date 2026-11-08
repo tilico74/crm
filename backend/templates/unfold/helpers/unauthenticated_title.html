@@ -1,0 +1,21 @@
+{% load i18n static %}
+{% comment %}Substitui o título do Unfold nas telas sem login: mostra a logo RDX no lugar do nome.{% endcomment %}
+
+<style>
+    .rdx-logo { display: inline-block; margin-top: 0.75rem; border-radius: 0.375rem; }
+    .rdx-logo img { display: block; height: 64px; width: auto; }
+    /* A logo tem letras escuras e fundo transparente: no tema escuro ganha um fundo claro. */
+    .dark .rdx-logo { background: #ffffff; padding: 0.5rem 0.75rem; }
+</style>
+
+<div class="border-b border-base-200 mb-8 pb-6 dark:border-base-800">
+    <h1 class="font-semibold">
+        {% if subtitle %}
+            <span class="block text-font-important-light dark:text-font-important-dark">{{ subtitle }} </span>
+        {% endif %}
+
+        <span class="rdx-logo">
+            <img src="{% static 'core/marca/logo-rdx.png' %}" alt="{{ title }} Redes de Proteção">
+        </span>
+    </h1>
+</div>

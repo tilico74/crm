@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | A fazer |
+| Status | Concluída |
 | Depende de | T002 |
 | Skills | `executar-em-docker` |
 | Contexto | `context/decisoes/ADR-002-backend-django.md`, `backend/README.md` |
@@ -20,11 +20,15 @@ Criar o projeto Django com DRF, JWT, Celery e as apps vazias da estrutura previs
 
 ## Checklist
 
-- [ ] Dockerfile do back-end
-- [ ] Settings por variável de ambiente
-- [ ] Apps vazias
-- [ ] Pytest configurado
+- [x] Dockerfile do back-end
+- [x] Settings por variável de ambiente
+- [x] Apps vazias
+- [x] Pytest configurado
 
 ## Dúvidas
 
 - Nenhuma por enquanto.
+
+## Observações
+
+- O modelo `usuarios.Usuario` (vazio, herda do usuário padrão do Django) foi criado já aqui: o `AUTH_USER_MODEL` precisa existir antes da primeira migração. Perfis e permissões continuam na T101.

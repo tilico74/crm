@@ -13,7 +13,7 @@ A RDX Redes de Proteção instala redes de proteção (janelas, sacadas, piscina
 
 Acesso e usuários, clientes, catálogo, CRM, orçamentos, pedidos, ordens de serviço, comissões, estoque, financeiro e emissão de notas via emissor homologado.
 
-**Fora da v1:** PDV, e-commerce, multilojas, app nativo e conciliação bancária automática.
+**Fora do projeto:** PDV, loja virtual (e-commerce), restaurantes (cardápio, delivery), multilojas, app nativo e conciliação bancária automática.
 
 ## Fonte completa
 

@@ -17,4 +17,4 @@ Levantado em 07/11/2026, só por leitura. **Não automatize chamadas à API inte
 | Fiscal | `NewInvoice` |
 | Financeiro | `FinancialCashFlow`, `FinancialAccount`, `FinancialManagementAccount`, `Bank`, `PaymentType`, `CompanyPartner` |
 
-Campos observados: cliente tem 52, produto tem 112. A lista completa é levantada na tarefa M001.
+Campos observados: cliente tem 52, produto tem 112. A lista completa é levantada na tarefa M001. Telas, seções e listas de valores: `telas-e-entidades.md`.

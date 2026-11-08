@@ -1,6 +1,6 @@
 # tasks — o que fazer
 
-Uma tarefa por arquivo, agrupadas por fase. **Nenhuma tecnologia foi instalada ainda**: a primeira instalação acontece na T002.
+Uma tarefa por arquivo, agrupadas por fase. A base tecnológica foi instalada nas tarefas T002–T004.
 
 ## Como um agente trabalha uma tarefa
 
@@ -20,9 +20,9 @@ Uma tarefa por arquivo, agrupadas por fase. **Nenhuma tecnologia foi instalada a
 | ID | Tarefa | Status | Depende de |
 | --- | --- | --- | --- |
 | T001 | [Estrutura do repositório para IA](fase-0-fundacao/T001-estrutura-do-repositorio-para-ia.md) | Concluída | — |
-| T002 | [Docker Compose do projeto](fase-0-fundacao/T002-docker-compose-do-projeto.md) | A fazer | T001 |
-| T003 | [Esqueleto do back-end](fase-0-fundacao/T003-esqueleto-do-back-end.md) | A fazer | T002 |
-| T004 | [Esqueleto do front-end](fase-0-fundacao/T004-esqueleto-do-front-end.md) | A fazer | T002 |
+| T002 | [Docker Compose do projeto](fase-0-fundacao/T002-docker-compose-do-projeto.md) | Concluída | T001 |
+| T003 | [Esqueleto do back-end](fase-0-fundacao/T003-esqueleto-do-back-end.md) | Concluída | T002 |
+| T004 | [Esqueleto do front-end](fase-0-fundacao/T004-esqueleto-do-front-end.md) | Concluída | T002 |
 | T005 | [Qualidade e integração contínua](fase-0-fundacao/T005-qualidade-e-integracao-continua.md) | A fazer | T003, T004 |
 | T101 | [Usuários e permissões](fase-1-nucleo/T101-usuarios-e-permissoes.md) | A fazer | T003, T004 |
 | T102 | [Clientes](fase-1-nucleo/T102-clientes.md) | A fazer | T101, T104, M001 |

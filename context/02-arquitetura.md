@@ -22,4 +22,4 @@ Navegador / celular
 | Banco | PostgreSQL | ADR-002 |
 | Arquivos | S3 ou compatível (MinIO em desenvolvimento) | ADR-001 |
 
-> As escolhas estão decididas, mas **nada foi instalado**. A instalação começa nas tarefas da fase 0.
+> Instalado na fase 0 (T002–T004): PostgreSQL 17, Redis 7.4, Python 3.12, Django 5.2, React 19, Refine 5, Tailwind 4. O serviço local de arquivos (MinIO) está pendente: ver T002.

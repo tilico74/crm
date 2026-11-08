@@ -18,4 +18,4 @@ Decisão: `context/decisoes/ADR-001-docker.md`.
 - Nova dependência: entra no arquivo de dependências (`requirements` ou `package.json`) e na imagem, nunca só no contêiner em execução.
 - Segredos só no `.env`, nunca no código nem no `docker-compose.yml`.
 
-> Os serviços existem a partir da tarefa T002. Antes disso, esta skill é só referência.
+Subir, parar e ver logs: `docker/README.md`.

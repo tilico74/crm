@@ -1,0 +1,60 @@
+/* Tokens RDX — fonte: context/design-system/cores-e-tokens.md */
+
+:root {
+  --rdx-brand-cyan: #00abe5;
+  --rdx-primary: #006c93;
+  --rdx-primary-dark: #005473;
+  --rdx-primary-light: #d1edfc;
+  --rdx-on-primary: #ffffff;
+  --rdx-secondary: #26323c;
+  --rdx-secondary-light: #bdbec0;
+  --rdx-surface: #f6f9fb;
+  --rdx-surface-raised: #ffffff;
+  --rdx-line: #dfe6eb;
+  --rdx-ink: #1a1f24;
+  --rdx-ink-muted: #5a6773;
+  --rdx-success: #157a44;
+  --rdx-success-soft: #e3f6ec;
+  --rdx-warning: #f1c40f;
+  --rdx-warning-ink: #8a6500;
+  --rdx-warning-soft: #fdf6d8;
+  --rdx-error: #c0392b;
+  --rdx-error-soft: #fde8e6;
+  --radius: 0.375rem;
+
+  /* Casco (barra superior e menu lateral): escuro nos dois temas, como na MarketUP. */
+  --rdx-shell-top: #1a1f24;
+  --rdx-shell-rail: #26323c;
+  --rdx-shell-panel: #303e4a;
+  --rdx-shell-ink: #e8eef2;
+  --rdx-shell-muted: #9aa7b2;
+  --rdx-shell-hover: rgb(255 255 255 / 0.08);
+  --rdx-shell-line: #3a4854;
+}
+
+.dark {
+  --rdx-brand-cyan: #22b6f1;
+  --rdx-primary: #5fcbff;
+  --rdx-primary-dark: #a0deff;
+  --rdx-primary-light: #0b3346;
+  --rdx-on-primary: #0f1418;
+  --rdx-secondary: #c9d3da;
+  --rdx-secondary-light: #4a5560;
+  --rdx-surface: #0f1418;
+  --rdx-surface-raised: #182027;
+  --rdx-line: #2b363f;
+  --rdx-ink: #e8eef2;
+  --rdx-ink-muted: #9aa7b2;
+  --rdx-success: #5fd38f;
+  --rdx-success-soft: #0f2e1d;
+  --rdx-warning: #f1c40f;
+  --rdx-warning-ink: #f5d64f;
+  --rdx-warning-soft: #2e2606;
+  --rdx-error: #ff8a7d;
+  --rdx-error-soft: #3a1512;
+
+  --rdx-shell-top: #0a0e11;
+  --rdx-shell-rail: #141b21;
+  --rdx-shell-panel: #1d262e;
+  --rdx-shell-line: #2b363f;
+}

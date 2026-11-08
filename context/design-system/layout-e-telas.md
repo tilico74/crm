@@ -2,7 +2,7 @@
 
 ## Coluna fixa (requisito)
 
-Todo conteúdo fica numa coluna de **até 992px**, centralizada à direita do menu lateral (88px recolhido, 240px aberto), igual à MarketUP. As barras de ação de cima e de baixo têm a mesma largura.
+Todo conteúdo fica numa coluna de **até 992px**, centralizada à direita do menu lateral (88px recolhido; aberto, 230px com nomes + painel de subitens de 220px), igual à MarketUP. Barra superior de 64px. As barras de ação de cima e de baixo têm a mesma largura.
 
 ## Listagem (modelo MarketUP)
 

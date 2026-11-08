@@ -1,0 +1,78 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource/bai-jamjuree/400.css";
+@import "@fontsource/bai-jamjuree/600.css";
+@import "@fontsource/bai-jamjuree/700.css";
+@import "@fontsource/pt-sans-narrow/400.css";
+@import "@fontsource/pt-sans-narrow/700.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "./design-system/tokens.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Tokens RDX → nomes usados pelo shadcn/ui e pelas classes do Tailwind. */
+@theme inline {
+  --font-sans: "Bai Jamjuree", system-ui, sans-serif;
+  --font-label: "PT Sans Narrow", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-background: var(--rdx-surface);
+  --color-foreground: var(--rdx-ink);
+  --color-card: var(--rdx-surface-raised);
+  --color-card-foreground: var(--rdx-ink);
+  --color-popover: var(--rdx-surface-raised);
+  --color-popover-foreground: var(--rdx-ink);
+  --color-primary: var(--rdx-primary);
+  --color-primary-foreground: var(--rdx-on-primary);
+  --color-secondary: var(--rdx-secondary);
+  --color-secondary-foreground: var(--rdx-surface-raised);
+  --color-muted: var(--rdx-surface);
+  --color-muted-foreground: var(--rdx-ink-muted);
+  --color-accent: var(--rdx-primary-light);
+  --color-accent-foreground: var(--rdx-ink);
+  --color-destructive: var(--rdx-error);
+  --color-border: var(--rdx-line);
+  --color-input: var(--rdx-line);
+  --color-ring: var(--rdx-brand-cyan);
+
+  --color-brand-cyan: var(--rdx-brand-cyan);
+  --color-primary-dark: var(--rdx-primary-dark);
+  --color-primary-light: var(--rdx-primary-light);
+  --color-secondary-light: var(--rdx-secondary-light);
+  --color-surface: var(--rdx-surface);
+  --color-surface-raised: var(--rdx-surface-raised);
+  --color-line: var(--rdx-line);
+  --color-ink: var(--rdx-ink);
+  --color-ink-muted: var(--rdx-ink-muted);
+  --color-success: var(--rdx-success);
+  --color-success-soft: var(--rdx-success-soft);
+  --color-warning: var(--rdx-warning);
+  --color-warning-ink: var(--rdx-warning-ink);
+  --color-warning-soft: var(--rdx-warning-soft);
+  --color-error: var(--rdx-error);
+  --color-error-soft: var(--rdx-error-soft);
+
+  --color-shell-top: var(--rdx-shell-top);
+  --color-shell-rail: var(--rdx-shell-rail);
+  --color-shell-panel: var(--rdx-shell-panel);
+  --color-shell-ink: var(--rdx-shell-ink);
+  --color-shell-muted: var(--rdx-shell-muted);
+  --color-shell-hover: var(--rdx-shell-hover);
+  --color-shell-line: var(--rdx-shell-line);
+
+  --radius-xs: 2px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  /* Foco sempre visível (acessibilidade). */
+  :focus-visible {
+    outline: 2px solid var(--rdx-brand-cyan);
+    outline-offset: 2px;
+  }
+}

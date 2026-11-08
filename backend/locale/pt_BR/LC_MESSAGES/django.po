@@ -1,0 +1,13 @@
+# Traduções do projeto RDX para textos de bibliotecas que não têm português.
+# Depois de editar: docker compose exec backend python manage.py compilemessages
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: pt_BR\n"
+
+# Unfold — tela de login
+msgid "Welcome back to"
+msgstr "Bem-vindo de volta ao"
+
+msgid "Return to site"
+msgstr "Voltar ao site"

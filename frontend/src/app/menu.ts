@@ -143,6 +143,7 @@ const FUNCIONALIDADE_POR_ROTA: Record<string, string> = {
   "/vendas/clientes": "clientes",
   "/vendas/crm": "crm",
   "/vendas/comissoes": "comissoes_lancamento",
+  "/vendas/comissoes/aprovacao": "comissoes_aprovacao",
   "/vendas/listas-de-precos": "listas_precos",
   "/vendas/ordens-de-servico": "ordens_servico",
   "/estoque/consulta": "consulta_estoque",

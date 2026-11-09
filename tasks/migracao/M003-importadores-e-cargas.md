@@ -34,6 +34,7 @@ Scripts de importação por entidade, na ordem das dependências, gravando o ID 
 
 | Data | Carga | Resultado |
 | --- | --- | --- |
+| 08/11/2026 | Contas correntes | 6 contas com o AccountID da MarketUP (`importar_contas_correntes ContasCorrentesMarketUP.json`, lido da tela Contas correntes): 1 Caixa e 2 PDV 1 (internas), 3 Banco do Brasil (inativa), 4 Nubank CNPJ, 5 Nubank Esther, 6 Mercado Pago; banco casado pelo código. Nenhuma é Principal (como na MarketUP). Recarga testada. As 2 entradas de teste que tinham ficado sem conta foram postas no Caixa. |
 | 08/11/2026 | Vendedores | 3 funcionários vendedores com o EmployeeID da MarketUP: 2 Esther Oliveira da Silva, 25 Cristian da Silva Jucoski, 1142 Nelson Cristiano Santos Jucoski (próximo ID 1143). No banco de testes, o usuário `admin` foi ligado ao 1142 para o vendedor vir pré-selecionado. |
 | 08/11/2026 | Clientes (limite) | A exportação não traz o limite de crédito: a carga aplica o "Limite para novos clientes" dos Parâmetros de venda (R$ 1.000,00) a quem está sem limite (3.210 clientes). Uma recarga não sobrescreve limite já alterado. |
 | 08/11/2026 | Pagamentos | 21 tipos (PaymentTypeID 1 a 21) e 56 condições com os IDs da MarketUP. Vencimentos conferidos com os nomes (ex.: "SEM ENTRADA + 03x" = 30/60/90 dias; cheque "30 e 90 Dias"). Recarga testada. |

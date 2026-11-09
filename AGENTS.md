@@ -12,6 +12,8 @@ Leia este arquivo inteiro antes de qualquer alteração.
 ## Regras fixas
 
 1. **Na dúvida, siga a MarketUP.** Telas, fluxos, nomes de campos, medidas e IDs seguem a MarketUP. As únicas exceções estão em `context/01-principios.md`.
+   - **A MarketUP é o modelo e a referência.** Antes de decidir uma regra, leia na MarketUP como ela faz e registre o que achou em `context/marketup/telas-e-entidades.md` (ou no `context/regras-de-negocio/` do assunto), com a data. Lembre que ela é só leitura (`context/regras-de-negocio/ids-marketup.md`).
+   - **Diferença achada depois vale para todo o sistema.** Se, durante o uso ou numa tarefa nova, aparecer uma tratativa da MarketUP diferente do que o RDX faz, a MarketUP é a referência. Corrija o RDX (ou registre a diferença como dúvida para o usuário) para manter a migração integrada. Exceção: o que o usuário decidiu diferente, que fica escrito na tarefa (ex.: frete fora da comissão, OS fora do histórico).
 2. **IDs iguais aos da MarketUP.** Nunca gere uma nova numeração para registros migrados (`context/regras-de-negocio/ids-marketup.md`).
 3. **Nomes de pessoas padronizados.** Todo nome de pessoa passa pela skill `skills/normalizar-nomes/SKILL.md` antes de ser gravado. Razão social, nome fantasia e endereço ficam como digitados (ADR-007).
 4. **Tudo roda em Docker.** Nenhuma dependência é instalada direto na máquina (`context/decisoes/ADR-001-docker.md`).

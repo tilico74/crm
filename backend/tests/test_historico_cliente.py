@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 
 from apps.catalogo.models import Produto, Unidade
 from apps.clientes.models import Cliente, EnderecoCliente, HistoricoCliente
-from apps.financeiro.models import CondicaoPagamento, TipoPagamento
+from apps.financeiro.models import CondicaoPagamento, ContaCorrente, TipoPagamento
 from apps.usuarios.models import Grupo, Usuario
 from apps.vendas.models import Orcamento, Pedido
 
@@ -50,7 +50,7 @@ def test_historico_junta_orcamentos_e_pedidos_com_status_atual(api):
     assert h["results"][2]["chave"] == o1.id and h["results"][0]["origem_id"] == 8 and h["results"][2]["origem_id"] == -8
     # O status acompanha o documento: entregue e pago vira CONCLUÍDO.
     conta = api.get(f"/api/pedidos/{pedido['id']}").data["parcelas"][0]["conta_receber"]
-    api.post(f"/api/contas-receber/{conta}/receber", {"data": "2026-11-08", "valor": "20"}, format="json")
+    api.post(f"/api/contas-receber/{conta}/receber", {"data": "2026-11-08", "valor": "20", "conta_corrente": ContaCorrente.objects.create(nome="Caixa", interna=True).id}, format="json")
     api.post(f"/api/pedidos/{pedido['id']}/entregar", {}, format="json")
     assert api.get(f"/api/clientes/{cliente.id}/historico").data["results"][0]["status"] == "CONCLUÍDO"
     # As anotações continuam na ficha, não nessa lista.

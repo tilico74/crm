@@ -142,6 +142,7 @@ Na ordem: nome do cliente · endereço de faturamento · endereço de entrega (s
 
 - `Event`: OriginID 7 (Vendas), OriginKey = SaleOrderID, OriginInstallment = parcela, ManagementAccountID 52 "Vendas via Pedido", Description "Pedido de Venda Nº 2990", sacado "CLIENTE: nome", emissão, vencimento, Value, Balance, faixa de status ("RECEBIDA").
 - "Efetuar recebimento": data, conta corrente, juros (+), descontos (−), valor recebido (=), efetuado em (forma), "Incluir recebimento". Histórico: data, recebido, desconto, juros, forma, conta, ícone do recibo e **X vermelho (estorno)**.
+- **Conta corrente obrigatória:** o select "Conta corrente" (`controller.accounts`, só ativas) vem com a conta `IsDefault` (Principal); `addEntry` grava `Entry.AccountID` da conta escolhida. Na RDX nenhuma conta é Principal, então a pessoa escolhe (o recebimento do pedido 2990 entrou no Nubank CNPJ). Contas da RDX: 1 Caixa, 2 PDV 1 (internas), 3 Banco do Brasil (inativa), 4 Nubank CNPJ, 5 Nubank Esther, 6 Mercado Pago.
 - `EntryEvent` (Amortized, Value, Discount, Interest) e `Entry` no caixa (Date, Value, AccountID, PaymentTypeID, IsCredit).
 
 ### Entregar e devolver
@@ -361,3 +362,13 @@ Código · Nome · Unidade · Custo · Valor · Ativo. **Não traz o `ServiceID`
 ### Ficha do serviço (`service/detail/{ServiceID}`)
 
 Serviço ativo? · Código de barras · Nome do serviço · Custo · Valor · Unidade · "Reajustar valor pela margem de lucro". Lista: Código · Nome · Unidade · Valor · Ativo.
+
+## Ordem de serviço (`work_order`) — conferido em 08/11/2026, só leitura
+
+- **A RDX não usa OS na MarketUP: a listagem tem 0 registros.** Não há OS para migrar; o RDX pode desenhar a OS pela necessidade de campo (técnico, agenda, fotos), mantendo a cara das fichas de venda.
+- Listagem: "Localizar por" com filtros, imprimir, exportar, "Adicionar novo" (mesmo modelo de orçamento e pedido).
+- Ficha nova: Vendedor · Emissão · Cliente (nome, CPF/CNPJ, RG/IE, contribuinte ICMS, e-mail, telefone; "Para iniciar uma nova ordem de serviço é necessário identificar o cliente…") · Endereço para faturamento (cartões, +) · Itens (produtos e serviços, com cadastro rápido de item e unidade) · Desconto geral · Observação · **Garantia** (`GuaranteePeriod` + `GuaranteePeriodName`, ex.: 90 dias) · Pagamento (forma, condição, valor). Sem endereço de entrega, sem técnico, sem agenda e sem fotos.
+- Rodapé: Cancelar · **Concluir serviço** · Salvar · Salvar e voltar. Topo: listar, imprimir, e-mail, copiar, Adicionar novo.
+- Modelo `currentOrder` (OS): Status, IssueDate, **DoneDate**, Items, Installments, FinancialOrigin (11 = OS), Seller, NoClient, Observation, GeneralDiscount, GuaranteePeriod.
+- `WorkOrderStatusEnum`: 1 Orçamento, 2 Aprovado, 5 Atrasado, 6 Concluído, 7 Cancelado, 8 Nota fiscal. `WorkOrderStatusFinancialEnum`: igual ao do pedido (1 Pendente, 2 Pago, 3 Pago parcial, 4 Atrasado, 6 Devolvido, 7 Cancelado). Permissões: Bill, Cancel, Return, Email, Copy, ViewAll, InsertSeller, InsertClient.
+- Concluir serviço (`billCurrentOrder`): mensagens com "<título> NÃO FATURADA!": nome do cliente obrigatório; "Endereço de faturamento / cobrança não informado."; "Não há serviços na ordem de serviço"; depois as mesmas regras de pagamento do pedido (parcelas = total, vencidas, limite de crédito) e contas a receber com origem 11.

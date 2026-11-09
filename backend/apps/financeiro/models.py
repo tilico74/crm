@@ -222,3 +222,37 @@ class Recebimento(ModeloBase):
     def amortizado(self):
         """Quanto o recebimento abate do saldo: recebido − juros + desconto."""
         return self.valor - self.juros + self.desconto
+
+
+class ContaPagar(ModeloBase):
+    """
+    Título a pagar (Event a débito). A T205 cria o mínimo para o fechamento de comissões
+    (o "registro financeiro" da aprovação na MarketUP); pagar, incluir à mão e as telas ficam na T302.
+    """
+
+    class Origem(models.IntegerChoices):
+        MANUAL = 0, "Manual"
+        COMISSAO = 20, "Comissão de vendas"
+
+    origem = models.PositiveSmallIntegerField("origem", choices=Origem, default=Origem.MANUAL)
+    origem_id = models.BigIntegerField("número do documento de origem", null=True, blank=True)
+    funcionario = models.ForeignKey(
+        "usuarios.Funcionario", verbose_name="favorecido (funcionário)", on_delete=models.PROTECT, null=True, blank=True, related_name="contas_pagar"
+    )
+    conta_gerencial = models.ForeignKey(ContaGerencial, verbose_name="conta gerencial", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
+    descricao = models.CharField("descrição", max_length=300)
+    emissao = models.DateField("emissão")
+    vencimento = models.DateField("vencimento")
+    valor = models.DecimalField("valor", max_digits=14, decimal_places=2)
+    saldo = models.DecimalField("saldo", max_digits=14, decimal_places=2)
+    cancelada = models.BooleanField("cancelada", default=False)
+
+    class Meta:
+        db_table = "conta_pagar"
+        ordering = ["vencimento", "id"]
+        verbose_name = "conta a pagar"
+        verbose_name_plural = "contas a pagar"
+        indexes = [models.Index(fields=["origem", "origem_id"])]
+
+    def __str__(self):
+        return self.descricao

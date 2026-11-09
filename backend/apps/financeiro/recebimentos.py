@@ -168,7 +168,11 @@ class ReceberSerializer(serializers.Serializer):
     juros = serializers.DecimalField(max_digits=14, decimal_places=2, required=False, default=ZERO)
     desconto = serializers.DecimalField(max_digits=14, decimal_places=2, required=False, default=ZERO)
     tipo_pagamento = serializers.PrimaryKeyRelatedField(queryset=TipoPagamento.objects.all(), required=False, allow_null=True)
-    conta_corrente = serializers.PrimaryKeyRelatedField(queryset=ContaCorrente.objects.all(), required=False, allow_null=True)
+    # Como na MarketUP: todo recebimento entra numa conta (Caixa, banco…); vem preenchida com a conta Principal.
+    conta_corrente = serializers.PrimaryKeyRelatedField(
+        queryset=ContaCorrente.objects.filter(ativo=True),
+        error_messages={"required": "Informe a conta corrente onde o valor entrou.", "null": "Informe a conta corrente onde o valor entrou."},
+    )
 
 
 class ContaReceberViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):

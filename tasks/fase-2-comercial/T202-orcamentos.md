@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Em revisão |
+| Status | Concluída |
 | Depende de | T102, T103 |
 | Skills | `criar-tela-listagem`, `criar-tela-formulario` |
 | Contexto | `context/marketup/telas-e-entidades.md` (Orçamento), `context/marketup/medidas-telas.md` |

@@ -33,10 +33,10 @@ Uma tarefa por arquivo, agrupadas por fase. A base tecnológica foi instalada na
 | T107 | [Localidades: CEP e IBGE](fase-1-nucleo/T107-localidades-cep-ibge.md) | Concluída | T003 |
 | T108 | [Máscaras e formatos](fase-1-nucleo/T108-mascaras-e-formatos.md) | Concluída | T003, T004 |
 | T201 | [CRM](fase-2-comercial/T201-crm.md) | A fazer | T102 |
-| T202 | [Orçamentos](fase-2-comercial/T202-orcamentos.md) | Em revisão | T102, T103 |
+| T202 | [Orçamentos](fase-2-comercial/T202-orcamentos.md) | Concluída | T102, T103 |
 | T203 | [Pedidos](fase-2-comercial/T203-pedidos.md) | Concluída | T202 |
-| T204 | [Ordens de serviço](fase-2-comercial/T204-ordens-de-servico.md) | A fazer | T203 |
-| T205 | [Comissões](fase-2-comercial/T205-comissoes.md) | A fazer | T203 |
+| T204 | [Ordens de serviço](fase-2-comercial/T204-ordens-de-servico.md) | Em andamento | T203 |
+| T205 | [Comissões](fase-2-comercial/T205-comissoes.md) | Concluída | T203 |
 | T206 | [Histórico do cliente com orçamentos e pedidos](fase-2-comercial/T206-historico-do-cliente.md) | Concluída | T102, T202, T203 |
 | T301 | [Estoque](fase-3-operacao/T301-estoque.md) | A fazer | T103 |
 | T302 | [Financeiro](fase-3-operacao/T302-financeiro.md) | A fazer | T203 |

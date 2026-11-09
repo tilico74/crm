@@ -219,6 +219,10 @@ class PedidoViewSet(OrcamentoViewSet):
         pedido.situacao_financeira = Pedido.Financeiro.PENDENTE
         pedido.atualizado_por = request.user
         pedido.save()
+        # Comissão automática do vendedor (T205): (total − frete) × % do vendedor.
+        from apps.comissoes.regras import gerar_do_pedido
+
+        gerar_do_pedido(pedido, request.user)
         return Response(self._dados(pk))
 
     @action(detail=True, methods=["post"])
@@ -266,6 +270,8 @@ class PedidoViewSet(OrcamentoViewSet):
         estorno = dados.get("valor_estorno", recebido)
         if estorno < 0 or estorno > recebido:
             raise ValidationError({"valor_estorno": f"O estorno vai de R$ 0,00 até o valor recebido (R$ {recebido:.2f})."})
+        if estorno > 0 and not dados.get("conta_corrente"):
+            raise ValidationError({"conta_corrente": "Informe a conta corrente de onde sai o valor estornado."})
         if estorno > 0:
             LancamentoCaixa.objects.create(
                 data=dados.get("data") or timezone.localdate(), conta_corrente=dados.get("conta_corrente"),
@@ -281,6 +287,10 @@ class PedidoViewSet(OrcamentoViewSet):
         pedido.data_cancelamento = timezone.now()
         pedido.atualizado_por = request.user
         pedido.save()
+        # Comissão (T205): em aberto é apagada; já fechada recebe estorno para o próximo fechamento.
+        from apps.comissoes.regras import estornar_do_pedido
+
+        estornar_do_pedido(pedido, request.user)
         return Response(self._dados(pk))
 
     @action(detail=True, methods=["post"])

@@ -66,3 +66,12 @@ class ContaReceberAdmin(ModelAdmin):
 class LancamentoCaixaAdmin(ModelAdmin):
     list_display = ["id", "data", "credito", "valor", "descricao", "conta_corrente"]
     list_filter = ["credito", "conta_corrente"]
+
+
+from .models import ContaPagar  # noqa: E402
+
+
+@admin.register(ContaPagar)
+class ContaPagarAdmin(ModelAdmin):
+    list_display = ["id", "descricao", "funcionario", "vencimento", "valor", "saldo", "cancelada"]
+    list_filter = ["origem", "cancelada"]

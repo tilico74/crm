@@ -23,6 +23,9 @@ import { ListasPrecosList } from "./resources/clientes/ListasPrecosList";
 import { OrcamentoForm, PedidoForm } from "./resources/orcamentos/OrcamentoForm";
 import { DocumentoImpressao, OrcamentoImpressao } from "./resources/orcamentos/OrcamentoImpressao";
 import { PedidosList } from "./resources/pedidos/PedidosList";
+import { ComissaoForm } from "./resources/comissoes/ComissaoForm";
+import { ComissoesList } from "./resources/comissoes/ComissoesList";
+import { FechamentoForm, FechamentosList } from "./resources/comissoes/Aprovacao";
 import { ReciboImpressao } from "./resources/pedidos/ReciboImpressao";
 import { OrcamentosList } from "./resources/orcamentos/OrcamentosList";
 import { InformacoesEmpresa } from "./resources/empresa/InformacoesEmpresa";
@@ -75,6 +78,10 @@ export default function App() {
                 <Route path="orcamentos/:id" element={<OrcamentoForm />} />
                 <Route path="pedidos" element={<PedidosList />} />
                 <Route path="pedidos/:id" element={<PedidoForm />} />
+                <Route path="comissoes" element={<ComissoesList />} />
+                <Route path="comissoes/aprovacao" element={<FechamentosList />} />
+                <Route path="comissoes/aprovacao/:id" element={<FechamentoForm />} />
+                <Route path="comissoes/:id" element={<ComissaoForm />} />
               </Route>
               <Route path="ajustes">
                 <Route path="funcionarios" element={<FuncionariosList />} />

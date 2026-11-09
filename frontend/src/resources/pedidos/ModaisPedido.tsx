@@ -53,7 +53,9 @@ export function ReceberModal({ contaId, tipos, onFechar, onMudou }: { contaId: n
     carregar().catch((e: ApiError) => setErro(e.message));
   }, [contaId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!contaCorrente && contas.length) setContaCorrente(contas.find((c) => c.principal)?.id ?? contas[0].id);
+    // Como na MarketUP: vem com a conta marcada como Principal; sem principal, a pessoa escolhe (é obrigatória).
+    const principal = contas.find((c) => c.principal);
+    if (!contaCorrente && principal) setContaCorrente(principal.id);
   }, [contas, contaCorrente]);
 
   if (!conta) return <Modal titulo="Efetuar recebimento" onFechar={onFechar}><p className="p-4 text-ink-muted">{erro || "Carregando…"}</p></Modal>;
@@ -107,7 +109,7 @@ export function ReceberModal({ contaId, tipos, onFechar, onMudou }: { contaId: n
         <div className="grid grid-cols-1 gap-3 py-3 sm:grid-cols-3">
           <label><span className={rotulo}>Data</span><input type="date" value={data} onChange={(e) => setData(e.target.value)} className={campo} /></label>
           <label>
-            <span className={rotulo}>Conta corrente</span>
+            <span className={rotulo}>Conta corrente *</span>
             <select value={contaCorrente} onChange={(e) => setContaCorrente(e.target.value ? Number(e.target.value) : "")} className={campo}>
               <option value="">—</option>
               {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
@@ -261,7 +263,7 @@ export function CancelarPedidoModal({ numero, recebido, tipos, onFechar, onConfi
           </select>
         </label>
         <label className="sm:col-span-2">
-          <span className={rotulo}>Conta corrente</span>
+          <span className={rotulo}>Conta corrente *</span>
           <select value={conta} onChange={(e) => setConta(e.target.value ? Number(e.target.value) : "")} className={campo}>
             <option value="">—</option>
             {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}

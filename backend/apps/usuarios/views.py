@@ -23,6 +23,8 @@ def me(request):
 
 class FuncionarioViewSet(AuditoriaViewSet):
     funcionalidade = "funcionarios"
+    # Beneficiário da conta a pagar e comprador do pedido de compra buscam funcionários.
+    funcionalidades_leitura = ["contas_pagar", "pedidos_compra", "orcamentos_compra"]
     queryset = Funcionario.objects.select_related("usuario__grupo")
     serializer_class = FuncionarioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

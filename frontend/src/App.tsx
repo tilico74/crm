@@ -26,6 +26,17 @@ import { PedidosList } from "./resources/pedidos/PedidosList";
 import { ComissaoForm } from "./resources/comissoes/ComissaoForm";
 import { ComissoesList } from "./resources/comissoes/ComissoesList";
 import { FechamentoForm, FechamentosList } from "./resources/comissoes/Aprovacao";
+import { BaixarVarias } from "./resources/financeiro/BaixarVarias";
+import { FornecedorForm } from "./resources/compras/FornecedorForm";
+import { FornecedoresList, TiposFornecedorList } from "./resources/compras/FornecedoresList";
+import { MotivosList, TiposEstocagemList } from "./resources/estoque/Cadastros";
+import { ConsultaEstoque } from "./resources/estoque/Consulta";
+import { InventarioForm, LocaisList, LocalForm } from "./resources/estoque/Locais";
+import { MovimentacaoForm, MovimentacoesList } from "./resources/estoque/Movimentacoes";
+import { FluxoCaixa } from "./resources/financeiro/FluxoCaixa";
+import { Movimentacao } from "./resources/financeiro/Movimentacao";
+import { ContaPagarForm, ContaReceberForm } from "./resources/financeiro/TituloForm";
+import { TitulosList } from "./resources/financeiro/TitulosList";
 import { ReciboImpressao } from "./resources/pedidos/ReciboImpressao";
 import { OrcamentosList } from "./resources/orcamentos/OrcamentosList";
 import { InformacoesEmpresa } from "./resources/empresa/InformacoesEmpresa";
@@ -83,6 +94,31 @@ export default function App() {
                 <Route path="comissoes/aprovacao/:id" element={<FechamentoForm />} />
                 <Route path="comissoes/:id" element={<ComissaoForm />} />
               </Route>
+              <Route path="financeiro">
+                <Route path="contas-a-receber" element={<TitulosList lado="receber" key="receber" />} />
+                <Route path="contas-a-receber/baixar" element={<BaixarVarias lado="receber" />} />
+                <Route path="contas-a-receber/:id" element={<ContaReceberForm />} />
+                <Route path="contas-a-pagar" element={<TitulosList lado="pagar" key="pagar" />} />
+                <Route path="contas-pagas" element={<TitulosList lado="pagar" quitadasInicial="1" titulo="Contas pagas" key="pagas" />} />
+                <Route path="contas-recebidas" element={<TitulosList lado="receber" quitadasInicial="1" titulo="Contas recebidas" key="recebidas" />} />
+                <Route path="contas-a-pagar/baixar" element={<BaixarVarias lado="pagar" />} />
+                <Route path="contas-a-pagar/:id" element={<ContaPagarForm />} />
+                <Route path="movimentacao-de-caixa" element={<Movimentacao />} />
+                <Route path="fluxo-de-caixa" element={<FluxoCaixa />} />
+              </Route>
+              <Route path="estoque">
+                <Route path="consulta" element={<ConsultaEstoque />} />
+                <Route path="movimentacoes" element={<MovimentacoesList />} />
+                <Route path="movimentacoes/:id" element={<MovimentacaoForm />} />
+                <Route path="locais" element={<LocaisList />} />
+                <Route path="locais/:id" element={<LocalForm />} />
+                <Route path="inventarios" element={<LocaisList />} />
+                <Route path="inventarios/:id" element={<InventarioForm />} />
+                <Route path="tipos-de-estocagem" element={<TiposEstocagemList />} />
+                <Route path="motivos" element={<MotivosList />} />
+                <Route path="compras/fornecedores" element={<FornecedoresList />} />
+                <Route path="compras/fornecedores/:id" element={<FornecedorForm />} />
+              </Route>
               <Route path="ajustes">
                 <Route path="funcionarios" element={<FuncionariosList />} />
                 <Route path="funcionarios/:id" element={<FuncionarioForm />} />
@@ -95,6 +131,7 @@ export default function App() {
                 <Route path="contas-correntes" element={<ContasCorrentesList />} />
                 <Route path="tipos-de-pagamento" element={<TiposPagamentoList />} />
                 <Route path="tipos-de-pagamento/:id" element={<TipoPagamentoForm />} />
+                <Route path="tipos-de-fornecedor" element={<TiposFornecedorList />} />
               </Route>
               {/* Cada módulo ganha sua rota ao ser construído; até lá, página provisória. */}
               <Route path="*" element={<EmConstrucao />} />

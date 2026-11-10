@@ -45,7 +45,7 @@ class TipoPagamentoAdmin(ModelAdmin):
 
 
 
-from .models import ContaReceber, LancamentoCaixa, Recebimento  # noqa: E402
+from .models import ContaPagar, ContaReceber, LancamentoCaixa, Pagamento, Recebimento, Transferencia  # noqa: E402
 
 
 class RecebimentoInline(TabularInline):
@@ -54,24 +54,34 @@ class RecebimentoInline(TabularInline):
     fk_name = "conta"
 
 
+class PagamentoInline(TabularInline):
+    model = Pagamento
+    extra = 0
+    fk_name = "conta"
+
+
 @admin.register(ContaReceber)
 class ContaReceberAdmin(ModelAdmin):
-    list_display = ["id", "descricao", "parcela", "parcelas", "cliente", "vencimento", "valor", "saldo", "cancelada"]
-    list_filter = ["origem", "cancelada"]
+    list_display = ["id", "descricao", "parcela", "parcelas", "cliente", "vencimento", "valor", "saldo", "origem", "cancelada"]
+    list_filter = ["origem", "cancelada", "manual"]
     search_fields = ["descricao", "cliente__nome", "origem_id"]
     inlines = [RecebimentoInline]
 
 
-@admin.register(LancamentoCaixa)
-class LancamentoCaixaAdmin(ModelAdmin):
-    list_display = ["id", "data", "credito", "valor", "descricao", "conta_corrente"]
-    list_filter = ["credito", "conta_corrente"]
-
-
-from .models import ContaPagar  # noqa: E402
-
-
 @admin.register(ContaPagar)
 class ContaPagarAdmin(ModelAdmin):
-    list_display = ["id", "descricao", "funcionario", "vencimento", "valor", "saldo", "cancelada"]
-    list_filter = ["origem", "cancelada"]
+    list_display = ["id", "descricao", "funcionario", "vencimento", "valor", "saldo", "origem", "cancelada"]
+    list_filter = ["origem", "cancelada", "manual"]
+    search_fields = ["descricao", "beneficiario_nome", "origem_id"]
+    inlines = [PagamentoInline]
+
+
+@admin.register(LancamentoCaixa)
+class LancamentoCaixaAdmin(ModelAdmin):
+    list_display = ["id", "data", "credito", "valor", "descricao", "conta_corrente", "manual"]
+    list_filter = ["credito", "conta_corrente", "manual"]
+
+
+@admin.register(Transferencia)
+class TransferenciaAdmin(ModelAdmin):
+    list_display = ["id", "data", "conta_origem", "conta_destino", "valor"]

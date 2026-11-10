@@ -38,8 +38,8 @@ Uma tarefa por arquivo, agrupadas por fase. A base tecnológica foi instalada na
 | T204 | [Ordens de serviço](fase-2-comercial/T204-ordens-de-servico.md) | Em andamento | T203 |
 | T205 | [Comissões](fase-2-comercial/T205-comissoes.md) | Concluída | T203 |
 | T206 | [Histórico do cliente com orçamentos e pedidos](fase-2-comercial/T206-historico-do-cliente.md) | Concluída | T102, T202, T203 |
-| T301 | [Estoque](fase-3-operacao/T301-estoque.md) | A fazer | T103 |
-| T302 | [Financeiro](fase-3-operacao/T302-financeiro.md) | A fazer | T203 |
+| T301 | [Estoque e Compras](fase-3-operacao/T301-estoque.md) | Em andamento | T103, T203, T302 |
+| T302 | [Financeiro](fase-3-operacao/T302-financeiro.md) | Em revisão | T203 |
 | T401 | [Notas fiscais](fase-4-fiscal-e-virada/T401-notas-fiscais.md) | A fazer | T203 |
 | T402 | [Período em paralelo e virada](fase-4-fiscal-e-virada/T402-periodo-em-paralelo-e-virada.md) | A fazer | M003 |
 | M001 | [Mapa de campos da MarketUP](migracao/M001-mapa-de-campos-da-marketup.md) | A fazer | T001 |

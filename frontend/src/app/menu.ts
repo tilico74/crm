@@ -15,8 +15,10 @@ import {
 // Fora do projeto: PDV, loja virtual, restaurantes, conectores (context/00-visao-geral.md).
 
 /** `pagina`: tela que não é listagem (formulário, painel); sem barra de ferramentas. */
-export type MenuLink = { label: string; path: string; tipo?: "pagina" };
-export type MenuSection = { label: string; links: MenuLink[] };
+/** `novo`: atalho "+" ao lado do item (ex.: Nova conta a pagar), como na MarketUP. */
+export type MenuLink = { label: string; path: string; tipo?: "pagina"; novo?: string };
+/** `recolhivel`: a seção abre e fecha com a seta (dropdown), como Pagamentos e Recebimentos na MarketUP. */
+export type MenuSection = { label: string; links: MenuLink[]; recolhivel?: boolean };
 
 export type MenuGroup = {
   id: string;
@@ -67,7 +69,15 @@ export const MENU: MenuGroup[] = [
       { label: "Movimentações", path: "/estoque/movimentacoes" },
       { label: "Locais de estoque", path: "/estoque/locais" },
       { label: "Tipos de estocagem", path: "/estoque/tipos-de-estocagem" },
+      { label: "Inventário", path: "/estoque/inventarios" },
       { label: "Motivo movimentação", path: "/estoque/motivos" },
+    ]).concat([
+      // Como na MarketUP, Compras fica dentro de Estoque (Orçamentos, Pedidos, Fornecedores, Devoluções, Compras em aberto).
+      {
+        label: "Compras",
+        recolhivel: true,
+        links: [{ label: "Fornecedores", path: "/estoque/compras/fornecedores", novo: "/estoque/compras/fornecedores/novo" }],
+      },
     ]),
   },
   {
@@ -84,12 +94,33 @@ export const MENU: MenuGroup[] = [
     id: "financeiro",
     label: "Financeiro",
     icon: IconCoinFilled,
-    sections: simple([
-      { label: "Fluxo de caixa", path: "/financeiro/fluxo-de-caixa", tipo: "pagina" },
-      { label: "Movimentação de caixa", path: "/financeiro/movimentacao-de-caixa" },
-      { label: "Contas a pagar", path: "/financeiro/contas-a-pagar" },
-      { label: "Contas a receber", path: "/financeiro/contas-a-receber" },
-    ]),
+    // Como a MarketUP: Pagamentos e Recebimentos abrem a mesma lista com filtros prontos (em aberto / quitadas,
+    // vencimento a partir de 3 meses atrás); o "+" de cada item abre uma conta nova.
+    sections: [
+      {
+        label: "",
+        links: [
+          { label: "Fluxo de caixa", path: "/financeiro/fluxo-de-caixa", tipo: "pagina" },
+          { label: "Movimentação de caixa", path: "/financeiro/movimentacao-de-caixa" },
+        ],
+      },
+      {
+        label: "Pagamentos",
+        recolhivel: true,
+        links: [
+          { label: "Contas a pagar", path: "/financeiro/contas-a-pagar", novo: "/financeiro/contas-a-pagar/novo" },
+          { label: "Contas pagas", path: "/financeiro/contas-pagas", novo: "/financeiro/contas-a-pagar/novo" },
+        ],
+      },
+      {
+        label: "Recebimentos",
+        recolhivel: true,
+        links: [
+          { label: "Cobrança (Conta a receber)", path: "/financeiro/contas-a-receber", novo: "/financeiro/contas-a-receber/novo" },
+          { label: "Contas recebidas", path: "/financeiro/contas-recebidas", novo: "/financeiro/contas-a-receber/novo" },
+        ],
+      },
+    ],
   },
   { id: "relatorios", label: "Relatórios", icon: IconChartDonutFilled, path: "/relatorios", sections: [] },
   {
@@ -114,6 +145,10 @@ export const MENU: MenuGroup[] = [
           { label: "Conta corrente", path: "/ajustes/contas-correntes" },
           { label: "Tipos de pagamento", path: "/ajustes/tipos-de-pagamento" },
         ],
+      },
+      {
+        label: "Pessoas",
+        links: [{ label: "Tipos de fornecedor", path: "/ajustes/tipos-de-fornecedor" }],
       },
     ],
   },
@@ -149,15 +184,19 @@ const FUNCIONALIDADE_POR_ROTA: Record<string, string> = {
   "/estoque/consulta": "consulta_estoque",
   "/estoque/movimentacoes": "movimentacoes_estoque",
   "/estoque/locais": "locais_estoque",
+  "/estoque/inventarios": "locais_estoque",
   "/estoque/tipos-de-estocagem": "tipos_estocagem",
   "/estoque/motivos": "motivos_movimentacao",
+  "/estoque/compras/fornecedores": "fornecedores",
   "/notas/emitir": "notas_fiscais",
   "/notas/recebidas": "notas_fiscais",
   "/notas/emitidas": "notas_fiscais",
   "/financeiro/fluxo-de-caixa": "fluxo_caixa",
   "/financeiro/movimentacao-de-caixa": "movimentacao_caixa",
   "/financeiro/contas-a-pagar": "contas_pagar",
+  "/financeiro/contas-pagas": "contas_pagar",
   "/financeiro/contas-a-receber": "contas_receber",
+  "/financeiro/contas-recebidas": "contas_receber",
   "/relatorios": "relatorios",
   "/ajustes/empresa": "empresa",
   "/ajustes/funcionarios": "funcionarios",
@@ -167,6 +206,7 @@ const FUNCIONALIDADE_POR_ROTA: Record<string, string> = {
   "/ajustes/contas-gerenciais": "contas_gerenciais",
   "/ajustes/contas-correntes": "contas_correntes",
   "/ajustes/tipos-de-pagamento": "tipos_pagamento",
+  "/ajustes/tipos-de-fornecedor": "tipos_fornecedor",
 };
 
 export type Permissoes = Record<string, string[]>;

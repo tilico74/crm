@@ -169,13 +169,13 @@ export function FechamentoForm() {
                 <ul className="divide-y divide-line text-sm">
                   {fechamento.contas_pagar.map((c) => (
                     <li key={c.id} className={cn("flex flex-wrap justify-between gap-2 py-2", c.cancelada && "text-ink-muted line-through")}>
-                      <span>Conta a pagar Nº {c.id} · {c.descricao}</span>
+                      <Link to={`/financeiro/contas-a-pagar/${c.id}`} className="text-primary underline">Conta a pagar Nº {c.id} · {c.descricao}</Link>
                       <span className="tabular-nums">vence {formatarData(c.vencimento)} · <strong>{formatarMoeda(c.valor)}</strong></span>
                     </li>
                   ))}
                 </ul>
               )}
-              <p className="mt-2 text-xs text-ink-muted">O pagamento das contas a pagar chega com o Financeiro (T302).</p>
+              <p className="mt-2 text-xs text-ink-muted">Pague cada conta pela ficha dela em Financeiro › Contas a pagar.</p>
             </div>
           </FormSection>
         )}

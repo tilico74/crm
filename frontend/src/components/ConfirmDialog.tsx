@@ -6,10 +6,12 @@ type Props = {
   confirmLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Ação que não destrói nada (ex.: aceitar a diferença como juros): botão na cor principal, não vermelho. */
+  neutro?: boolean;
 };
 
-/** Confirmação de ação destrutiva; o botão de confirmar não é o foco inicial. */
-export function ConfirmDialog({ title, message, confirmLabel, onConfirm, onCancel }: Props) {
+/** Confirmação de ação (vermelha quando destrói algo); o botão de confirmar não é o foco inicial. */
+export function ConfirmDialog({ title, message, confirmLabel, onConfirm, onCancel, neutro }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -33,7 +35,15 @@ export function ConfirmDialog({ title, message, confirmLabel, onConfirm, onCance
         <button type="button" autoFocus onClick={onCancel} className="min-h-12 rounded-xs bg-secondary px-5 text-sm font-bold uppercase text-surface-raised hover:opacity-90">
           Cancelar
         </button>
-        <button type="button" onClick={onConfirm} className="min-h-12 rounded-xs bg-error px-5 text-sm font-bold uppercase text-surface-raised hover:opacity-90">
+        <button
+          type="button"
+          onClick={onConfirm}
+          className={
+            neutro
+              ? "min-h-12 rounded-xs bg-primary px-5 text-sm font-bold uppercase text-primary-foreground hover:bg-primary-dark"
+              : "min-h-12 rounded-xs bg-error px-5 text-sm font-bold uppercase text-surface-raised hover:opacity-90"
+          }
+        >
           {confirmLabel}
         </button>
       </div>

@@ -83,7 +83,7 @@ def fechar(comissoes_ids: list[int], data, descricao: str, usuario) -> Fechament
         data=data, descricao=descricao or "", valor_total=total, criado_por=usuario, atualizado_por=usuario
     )
     Comissao.objects.filter(pk__in=[c.pk for c in comissoes]).update(fechamento=fechamento)
-    conta_gerencial = ContaGerencial.objects.filter(nome__iexact="Comissão de vendas").first()
+    conta_gerencial = ContaGerencial.objects.filter(pk=43).first()  # "Comissão de Vendas" da MarketUP
     por_vendedor: dict = {}
     for c in comissoes:
         por_vendedor.setdefault(c.vendedor, Decimal(0))
@@ -92,7 +92,7 @@ def fechar(comissoes_ids: list[int], data, descricao: str, usuario) -> Fechament
         if valor <= 0:
             continue  # só estornos/zeros: nada a pagar
         ContaPagar.objects.create(
-            origem=ContaPagar.Origem.COMISSAO, origem_id=fechamento.id, funcionario=vendedor, conta_gerencial=conta_gerencial,
+            origem=ContaPagar.Origem.COMISSOES, origem_id=fechamento.id, funcionario=vendedor, conta_gerencial=conta_gerencial,
             descricao=f"Comissão de vendas - fechamento Nº {fechamento.id} - {vendedor.nome}",
             emissao=data, vencimento=data, valor=valor, saldo=valor, criado_por=usuario, atualizado_por=usuario,
         )
@@ -104,7 +104,7 @@ def desfazer(fechamento: FechamentoComissao, usuario):
     """Desfaz o fechamento: os lançamentos voltam a ficar em aberto e as contas a pagar são canceladas."""
     from apps.financeiro.models import ContaPagar
 
-    contas = ContaPagar.objects.filter(origem=ContaPagar.Origem.COMISSAO, origem_id=fechamento.id, cancelada=False)
+    contas = ContaPagar.objects.filter(origem=ContaPagar.Origem.COMISSOES, origem_id=fechamento.id, cancelada=False)
     if contas.filter(saldo__lt=F("valor")).exists():
         raise ValidationError({"detail": "Já houve pagamento deste fechamento. Estorne o pagamento antes de desfazer."})
     contas.update(cancelada=True)

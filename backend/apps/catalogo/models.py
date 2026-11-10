@@ -131,6 +131,7 @@ class Produto(ModeloBase):
     # Estoque
     movimenta_estoque = models.BooleanField("movimentar estoque", default=False)
     movimenta_estoque_composicao = models.BooleanField("movimentar estoque da composição", default=False)
+    estoque_minimo = models.DecimalField("estoque mínimo", max_digits=14, decimal_places=3, default=0)
     # Fragmentação (venda fracionada): "1 <unidade do produto> = <quantidade> <unidade>", vendida por <preço>.
     # Ex.: 1 Rolo = 50 Metros, a R$ 12,00 o metro. Vazia = o produto não é vendido fracionado.
     fragmentacao_quantidade = models.DecimalField("fragmentação: quantidade", max_digits=12, decimal_places=3, null=True, blank=True)

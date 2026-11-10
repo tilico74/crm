@@ -23,6 +23,8 @@ urlpatterns = [
     path("api/", include("apps.clientes.urls")),
     path("api/", include("apps.vendas.urls")),
     path("api/", include("apps.comissoes.urls")),
+    path("api/", include("apps.estoque.urls")),
+    path("api/", include("apps.compras.urls")),
     path("api/empresa", EmpresaView.as_view(), name="empresa"),
     path("api/empresa/logotipo", LogotipoView.as_view(), name="empresa_logotipo"),
     path("api/parametros-venda", ParametrosVendaView.as_view(), name="parametros_venda"),

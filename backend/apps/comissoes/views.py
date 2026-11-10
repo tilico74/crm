@@ -135,7 +135,7 @@ class FechamentoSerializer(serializers.ModelSerializer):
 
     def get_contas_pagar(self, fechamento):
         return list(
-            ContaPagar.objects.filter(origem=ContaPagar.Origem.COMISSAO, origem_id=fechamento.id)
+            ContaPagar.objects.filter(origem=ContaPagar.Origem.COMISSOES, origem_id=fechamento.id)
             .values("id", "descricao", "valor", "saldo", "vencimento", "cancelada", "funcionario__nome")
         )
 

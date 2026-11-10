@@ -1,12 +1,12 @@
 import { useGetIdentity } from "@refinedev/core";
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { IconChevronDown, IconChevronLeft, IconChevronRight, IconCirclePlus } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 
 import type { Me } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-import { findMenuItem, menuPermitido, type MenuGroup } from "../menu";
+import { findMenuItem, menuPermitido, pode, type MenuGroup } from "../menu";
 
 type Props = { open: boolean; onOpenChange: (open: boolean) => void };
 
@@ -165,32 +165,71 @@ export function SideNav({ open, onOpenChange }: Props) {
 }
 
 function Submenu({ group }: { group: MenuGroup }) {
+  const { data: me } = useGetIdentity<Me>();
+  const { pathname } = useLocation();
+  // Seções recolhíveis (Pagamentos, Recebimentos): abre a da tela atual; as outras começam fechadas.
+  const [abertas, setAbertas] = useState<Set<string>>(
+    () => new Set(group.sections.filter((s) => s.recolhivel && s.links.some((l) => pathname.startsWith(l.path))).map((s) => s.label)),
+  );
+  const alternar = (label: string) =>
+    setAbertas((atual) => {
+      const nova = new Set(atual);
+      if (nova.has(label)) nova.delete(label);
+      else nova.add(label);
+      return nova;
+    });
   return (
     <>
-      {group.sections.map((section) => (
-        <div key={section.label || group.id} className="mb-2">
-          {section.label && (
+      {group.sections.map((section) => {
+        const aberta = !section.recolhivel || abertas.has(section.label);
+        return (
+        <div key={section.label || group.id} className={section.recolhivel ? "" : "mb-2"}>
+          {section.label && section.recolhivel && (
+            <button
+              type="button"
+              onClick={() => alternar(section.label)}
+              aria-expanded={aberta}
+              className={cn(
+                "mx-3 flex min-h-11 w-[calc(100%-1.5rem)] items-center justify-between rounded-xs px-3 text-sm font-semibold text-shell-ink/85 hover:bg-shell-hover hover:text-shell-ink",
+                aberta && "bg-shell-hover text-shell-ink",
+              )}
+            >
+              {section.label}
+              <IconChevronDown size={18} aria-hidden className={cn("transition-transform duration-200", aberta && "rotate-180")} />
+            </button>
+          )}
+          {section.label && !section.recolhivel && (
             <p className="px-6 pb-1 pt-3 text-xs font-bold uppercase tracking-wide text-shell-muted">{section.label}</p>
           )}
-          <ul>
+          {aberta && (
+          <ul className={cn(section.recolhivel && "animate-in fade-in-0 slide-in-from-top-1 duration-150")}>
             {section.links.map((link) => (
-              <li key={link.path}>
+              <li key={link.path} className="flex items-center">
                 <NavLink
                   to={link.path}
                   className={({ isActive }) =>
                     cn(
-                      "flex min-h-11 items-center border-l-4 border-transparent px-6 text-sm font-semibold text-shell-ink/85 hover:bg-shell-hover hover:text-shell-ink",
+                      "flex min-h-11 flex-1 items-center border-l-4 border-transparent text-sm font-semibold text-shell-ink/85 hover:bg-shell-hover hover:text-shell-ink",
+                      section.recolhivel ? "pl-8 pr-1" : "px-6",
                       isActive && "border-brand-cyan bg-shell-hover text-shell-ink",
                     )
                   }
                 >
                   {link.label}
                 </NavLink>
+                {/* Atalho "+" (ex.: Nova conta a pagar), como na MarketUP; só para quem pode adicionar. */}
+                {link.novo && me && pode(me.permissoes, link.path, "adicionar") && (
+                  <Link to={link.novo} aria-label={`Novo: ${link.label}`} title="Adicionar novo" className="mr-2 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-brand-cyan hover:bg-shell-hover">
+                    <IconCirclePlus size={20} aria-hidden />
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
+          )}
         </div>
-      ))}
+        );
+      })}
     </>
   );
 }

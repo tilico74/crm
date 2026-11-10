@@ -372,3 +372,113 @@ Serviço ativo? · Código de barras · Nome do serviço · Custo · Valor · Un
 - Modelo `currentOrder` (OS): Status, IssueDate, **DoneDate**, Items, Installments, FinancialOrigin (11 = OS), Seller, NoClient, Observation, GeneralDiscount, GuaranteePeriod.
 - `WorkOrderStatusEnum`: 1 Orçamento, 2 Aprovado, 5 Atrasado, 6 Concluído, 7 Cancelado, 8 Nota fiscal. `WorkOrderStatusFinancialEnum`: igual ao do pedido (1 Pendente, 2 Pago, 3 Pago parcial, 4 Atrasado, 6 Devolvido, 7 Cancelado). Permissões: Bill, Cancel, Return, Email, Copy, ViewAll, InsertSeller, InsertClient.
 - Concluir serviço (`billCurrentOrder`): mensagens com "<título> NÃO FATURADA!": nome do cliente obrigatório; "Endereço de faturamento / cobrança não informado."; "Não há serviços na ordem de serviço"; depois as mesmas regras de pagamento do pedido (parcelas = total, vencidas, limite de crédito) e contas a receber com origem 11.
+
+## Financeiro (T302) — investigado em 09/11/2026, só leitura (código das telas + consultas de leitura)
+
+### Enums (`appErp.Types.Financial`)
+
+| Enum | Valores |
+| --- | --- |
+| `FinancialOriginsEnum` | 2 Despesas, 3 Receitas, 4 Impostos, 5 Comissões, 6 Compras, 7 Vendas, 8 PDV, 9 Restaurante, 10 Ecommerce, 11 OS, 12 OtherInvoice |
+| `FinancialEntryTypesEnum` | 1 Debit, 2 Credit, 3 Transfer, 4 DebitAdjustment, 5 CreditAdjustment, 6 Boleto, 7 Pix, 8 PaymentLink |
+| Permissões | Payable: Insert, Delete · Receivable: Insert, Delete |
+
+### Título (`Event`) — contas a receber (`receivable`) e a pagar (`payable`)
+
+- Campos: EventID, Description, Date (vencimento), IssueDate (emissão), Value, Balance (saldo), DocumentNumber, Observation, Barcode, DefaultPaymentTypeID, ManagementAccountID (classificação), OriginID, OriginKey (nº do documento), OriginInstallment, IsCredit (receber = true), PersonID (sacado/beneficiário: cliente, fornecedor ou funcionário), IsManual, EntryEvents (baixas).
+- **Status** (`getListEventStatusName`): saldo < 0,009 → **RECEBIDO** (a pagar: **PAGO**); vence hoje → **HOJE**; futuro → **A RECEBER** (a pagar: A PAGAR); passado → **VENCIDA**; saldo ≠ valor e > 0 → acrescenta **" / PARCIALMENTE RECEBIDO"**. Faixa da ficha: NOVO, RECEBIDA, HOJE, A vencer, Vencida.
+- **Listagem**: caixa de seleção (✓ quando quitada) · Vencimento + status · Conta (descrição "PEDIDO DE VENDA Nº 15 (CHEQUE)" + "SACADO: nome") · Conta gerencial + "ORIGEM: VENDAS" · Valor · Saldo · lápis (lixeira só em manual). Totais (soma de valor e de saldo da lista) no topo. Sem filtro padrão, ordem por vencimento.
+- **Filtros** ("Adicionar filtro"): Vencimento (Vencidas / A vencer) · Status (Recebidas / Em aberto) · Conta gerencial · Tipo de pagamento · Data de vencimento (de/até). A pagar: os mesmos (Pagas / Em aberto).
+- **Receber/pagar várias**: marcar na lista → uma só abre a ficha; várias → `revenue/new/{ids}` ("Recebimento de múltiplas contas": lista das escolhidas + data, conta corrente, forma, juros total, descontos total, valor recebido, saldo a receber, RECEBER).
+- **Ficha** (esquerda): código de barras (imagem + campo) · Classificação (conta gerencial: a receber só as de entrada, a pagar todas) · Descrição · Sacado (a pagar: Beneficiário; busca cliente/fornecedor/funcionário) · Observações · Emissão · Vencimento · Valor total · **Repetir** ("Não repetir", 2 a 12 vezes; a pagar "Intervalo") · Histórico de recebimentos (Data · Recebido · Desconto · Juros · Forma · Conta · recibo · X) · Saldo a receber. (direita): faixa do status + "Efetuar recebimento": observação, data, conta corrente, juros (+), descontos (−), valor recebido (=), efetuado em, "Incluir recebimento". Rodapé: Ver origem (se veio de documento) · Cancelar (excluir, só manual: origem < 4) · Salvar.
+- **Regras da ficha**: descrição e sacado travam se veio de documento (`hasOrigin`); valor, emissão e vencimento travam com baixa (`hasEntry`). "Incluir recebimento" só **acrescenta na lista da tela**; o X **tira da lista**; nada grava até **SALVAR** (conta + baixas juntas). Amortizado = valor + desconto − juros. **Amortizado maior que o saldo → pergunta "Recebimento maior que o saldo da conta. Deseja informar a diferença (R$ x) como juros?"**. Valores negativos ou soma ≤ 0 → "Recebimento inválido, verifique os valores informados.". Conta corrente obrigatória (vem a Principal). Saldo = valor − Σ amortizado (< 0,009 → 0). Salvar manual grava `IsManual`; com repetição, cria N títulos.
+- Exemplo: título 12163 (pedido 2990, R$ 3.051,60) recebido com R$ 2.874,91 + desconto R$ 176,69 (taxa do cartão digitada à mão; a condição "Cartão de crédito à vista" tem taxa 0).
+- Link de origem (`getOriginLink`): Comissões → fechamento de comissão; Compras → pedido de compra; PDV → cupom; OS → ordem de serviço; senão pedido de venda.
+
+### Movimentação de caixa (`cash_movement`)
+
+- Período (padrão: últimos 7 dias) · filtros: Conta gerencial, Conta (corrente), Pago em (forma), Valor (de/até), Tipo (Crédito / Débito). Botões: Adicionar novo (lançamento), **Nova transferência**, imprimir, exportar.
+- Lista **agrupada por data** (faixa cinza com a data): Conta · Descrição ("PEDIDO DE VENDA Nº 2990 - VENDAS VIA PEDIDO", embaixo "(MANUAL)" ou "(AUTOMÁTICO)") · Forma · Tipo (Crédito/Débito) · Valor (débito em vermelho, negativo) · lápis (+ lixeira no manual). Rodapé: **Saldo período** (soma do filtrado) e **Saldo atual** (acumulado de todas as contas, ou da conta filtrada).
+- **Lançamento** (modal): Pagamento / Recebimento · Classificação (conta gerencial) · Data · Conta corrente · Valor (> 0) · Efetuado em · Descrição/observação. Grava um **título já quitado** (saldo 0, origem 3 Receitas se crédito, 2 Despesas se débito, manual) + a baixa na conta.
+- **Transferência** (modal): Data · Conta de origem · Conta de destino · Nº doc · Valor · Efetuado em · Observação → saída numa conta e entrada na outra (ligadas por `TransferEntryID`).
+- Exclusão de movimento manual pede "Deseja realmente excluir o registro?".
+
+### Fluxo de caixa (`cash_flow`)
+
+- Topo: período (de/até), Contas (todas ou uma), Visualizar por **Dias / Meses**, exportar. Colunas = dias ou meses do período.
+- Linhas: **Saldo inicial** · **Receita** (Operacionais = DRE "Entradas": Vendas via PDV/Pedido/Loja virtual; Não operacionais: Outras receitas, Transferência, Rendimentos, Aportes, Ajuste de caixa - entrada) · **Despesa** (agrupada pelo grupo do DRE: Impostos e devoluções, Custo da mercadoria, Gerais e administrativas, …) · **Saldo final**. Cada conta gerencial abre os títulos (descrição, pessoa, valor).
+- **Regra conferida com os números da RDX**: até hoje entra o **realizado** (baixas). Para período futuro, entra o **previsto**: títulos em aberto pelo vencimento. Saldo inicial de um período futuro = saldo realizado hoje − **contas a pagar vencidas em aberto** + **contas a receber vencidas em aberto** (25.123,51 − 25.478,45 + 14.070,00 = 13.715,06 em 10/11/2026; restante de novembro −3.482,69 → 10.232,37 em 01/12).
+- Cards: **Inadimplência** (contas a receber vencidas em aberto: R$ 14.070,00 em 4 contas, crescimento nos últimos 30 dias, Ver todos, "Simular recebimento mensal de" 0/15/30/50/75%) e **Endividamento** (contas a pagar vencidas; o card mostrava R$ 13.065,18 em 5 contas, número que não bateu com nenhum recorte testado — total vencido 25.478,45 em 21 contas). **Saldo simulado** = saldo final ± as simulações mês a mês.
+
+### Plano de contas da RDX (`management_account`)
+
+58 contas, sem hierarquia, com o grupo do DRE (1 Entradas, 2 Impostos e Devoluções, 3 Custo da Mercadoria, 5 Gerais e Administrativas, 6 Aluguel/Condomínio/IPTU, 7 Propaganda e Marketing, 8 Pessoal, 9 Pro labore, 10 Utilidades, 11 Receitas Financeiras, 12 Despesas Financeiras). Arquivo da carga: `migracao/dados/ContasGerenciaisMarketUP.json`. Contas usadas pelo sistema: 52 Vendas via Pedido, 43 Comissão de Vendas, 74 Taxa Cartão de Crédito, 73/72 Ajuste de Caixa, 54/35 Transferência.
+
+### Menu Financeiro (conferido em 09/11/2026)
+
+Fluxo de caixa · Movimentação de caixa · Conciliação bancária (fora da v1) · **Pagamentos** ▸ (Contas a pagar · Contas pagas) · **Recebimentos** ▸ (Cobrança (Conta a receber) · Contas recebidas) · Saldo e extrato integrados (fora da v1). Os quatro itens abrem a **mesma lista** (`payable` / `receivable`) com filtros prontos na URL (`/search/<base64>`): `{"DueDateFrom": hoje − 3 meses, "Page": 1, "Paid"/"Received": false|true}`. A tela mostra o título do item ("CONTAS PAGAS") e os filtros como etiquetas removíveis ("Data de vencimento: De 09/08", "Status: Pagas"). Cada item tem o atalho "+" (Nova conta a pagar / a receber).
+
+## Estoque e Compras (T301) — investigado em 09/11/2026, só leitura
+
+### Uso real na RDX
+
+- **Estoque nunca foi usado**: 0 movimentações, consulta e movimentações com a tela de primeiro uso ("Entendi! Vou começar a usar"); os 190 produtos têm `MovesStock = false`. Um local: **1 Estoque Padrão** (tipo 1). Tipos de estocagem: **1 Padrão, 2 Refrigerado**. Motivos de movimentação: nenhum.
+- **Compras é usado**: ~260 pedidos de compra (ex.: 260 ProtectGate, R$ 8.721,43, faturado, recebimento total, pagamento atrasado), 1 orçamento de compra, 0 devoluções, centenas de fornecedores (IDs na mesma faixa dos clientes, ex.: 2895, 3219).
+
+### Menu Estoque
+
+Produção (fora) · Consulta de estoque (`stock_query`) · Movimentações (`new_stock_movement`) · Locais de estoque (`stock_location`) · Tipos de estocagem (`storage_type`) · Inventário (dentro do local) · Mapa de estoque (posições do local) · Motivo movimentação (`stock_movement_reason`) · **Compras** ▸ Orçamentos (`purchase_budget`) · Pedidos (`purchase_order`) · Fornecedores (`supplier`) · Devoluções (`purchase_return`) · Compras em aberto (`purchase_order_query`, relatório).
+
+### Enums
+
+| Enum | Valores |
+| --- | --- |
+| `StockMovementTypeEnum` | 1 Entrada, 2 Saída, 3 Transferência, 4 Acerto |
+| `StockMovementOriginTypeEnum` | 1 SaleOrder, 2 Coupon, 3 Production, 4 Purchase, 5 StockTransfer, 6 SaleOrderCancel, 7 SaleOrderDevolution, 8 CouponCancel, 9 CouponDevolution, 10 PurchaseOrderCancel, 11 PurchaseOrderDevolution, 12 Invoice |
+| `PurchaseOrderStatusEnum` | 1 Novo, 2 Faturado, 3 Entrega parcial, 4 Não conformidade, 5 Atrasado, 6 Finalizado, 7 Cancelado, 8 NF-e solicitada, 9 Aguardando pagamento, 10 Pago, 11 Consignado |
+| `PurchaseBudgetStatusEnum` | 1 Novo, 2 Vencido, 3 Finalizado, 4 Cancelado, 6 Concluído |
+| Permissões do pedido de compra | Bill, Delivery, Cancel, Return, Email, Copy, InsertBuyer, InsertSupplier |
+
+### Locais, tipos, motivos
+
+- **Local** (`StockLocation`): Nome · Tipo de estocagem · Ativo · usa posição (rua, corredor, prateleira, andar) · padrão. Lista: Nome · Tipo estocagem · C. distribuição · Ativo. Ficha com abas **Estoque atual** (código, item, qtd. disponível; importar/exportar) e **Inventários** ("Inventariar estoque" / "Cancelar inventário"), posições ("Adicionar", "Adicionar lote", "Visualizar mapa").
+- **Inventário**: "Deseja realmente inventariar o local de estoque? IMPORTANTE: Não será possível movimentar o local de estoque durante o inventário." Contagem e fechamento geram uma movimentação (acerto); pode ser cancelado.
+- **Tipo de estocagem**: Nome. **Motivo**: ID · Nome (cadastro rápido na movimentação).
+
+### Consulta de estoque
+
+Item · Qtd. disponível · Estoque mín. · Preço · Valor unitário · Valor total; cada item abre por local (local, qtd., valor total) e permite editar a quantidade (ajuste). Exportar.
+
+### Movimentação manual (`new_stock_movement/new`)
+
+"Qual é o tipo de movimentação?" Entrada · Saída · Transferência → data, local de origem / destino, pessoa, informações adicionais, dados da nota (nº, série, emissão, valor adicional), itens (produto, unidade, quantidade, valor, lote, fabricação, validade), motivo (+ cadastro), "perda e avaria" (só saída). Regras: pelo menos um item; transferência com origem ≠ destino; movimento vindo de documento é "acerto" e não pode ser transferência.
+- **Código do formulário (lido em 09/11/2026)**: ao incluir item, `ItemValue = item.Cost` (o preço de venda para saída está comentado: movimentação vale pelo custo); `saveCurrentItem` só valida "Defina o tipo de movimentação!", "Quantidade de itens não permitida." (quantidade ≤ 0) e "Este item não está com a movimentação de estoque habilitada." — **não há checagem de saldo**: saída manual pode deixar o estoque negativo (o bloqueio de negativo existe só na venda, parâmetro "Bloquear venda com estoque negativo"). Tirar item da lista pede "Deseja realmente excluir o registro?". Outras mensagens: "A movimentação deve conter pelo menos um item.", "Movimentações de Transferencia não podem ser referenciadas", "Todos os estoques em inventário ou nenhum ativo.".
+
+### Pedido de compra (`purchase_order`)
+
+- Lista: Pedido (nº + status) · Status (emitido em, faturado em) · Fornecedor (nome, CNPJ, IE) · Recebimento (data + "status entrega") · Valor (+ "status pgto"). Mesmo modelo do pedido de venda.
+- Ficha = pedido de venda espelhado: status ("FATURADO", "Recebimento: TOTAL / Pagamento: ATRASADO") · # nº · comentários · **Comprador** (funcionário "Comprador?", + novo comprador) · Emissão · Recebimento (previsto) · botões CONCLUIR (novo) / RECEBER / DEVOLVER · **Fornecedor** (busca + "Cadastrar novo fornecedor"; CPF/CNPJ, RG/IE, e-mail, telefone) · **Endereço de faturamento e de entrega = endereços da própria empresa** (com "Clique aqui para informar…" para dispensar) · Itens (produto, cadastro rápido de item pelo **custo**, quantidade, unidade, valor, desconto, observação; lote e validade) · Desconto, Frete, Outros custos · Pagamento com **conta gerencial** (padrão 58 Mercadoria para Revenda) e as parcelas (descrição = duplicata, ex.: "3612/001"). Topo: importar **XML da NF-e**, imprimir, e-mail, copiar, Adicionar novo.
+- Modelo: PurchaseOrderID, SupplierID, BuyerID, Billing/DeliveryAddressID, IssueDate, DeliveryDate, BillingDate, CancelDate, Subtotal, Shipping, Discount, GeneralTaxes, Total, Status, Observation, ItemsToReceive, PurchaseBudgetID, Invoice (nº, série, emissão, XML). Item: ItemID, ItemUnitID, SupplierItemID (código do fornecedor), Amount, **Received**, **Returned**, Value, Discount, Subtotal, Total, InStock, Batch, ExpirationDate, Observation. Parcela: Value, Balance, Description, EventID (conta a pagar), PaymentTypeID, PaymentConditionID, PaymentGuid, **ManagementAccountID**.
+- **Concluir (faturar)** (`billCurrentOrder`): "PEDIDO NÃO FATURADO!" + endereço de faturamento/cobrança não informado · endereço de entrega não informado · não há itens · forma/condição de pagamento inválida · "Verifique o valor das parcelas, total inválido". Conta gerencial vazia das parcelas vira 58. (Parcelas vencidas não bloqueiam.) Gera as contas a pagar.
+- **Receber** (modal "RECEBER PEDIDO"): local de estoque · data de recebimento · dados fiscais (nº NF-e, série, emissão) · observações · por item: pedido / recebido / **quantidade a receber** (parcial), posição, lote, validade → entrada no estoque (origem 4 Purchase) e status de recebimento. "Pedido Nº X entregue com sucesso!".
+- **Devolver** e **Cancelar**: como no pedido de venda (devolução com estorno; cancelamento retira as contas a pagar e devolve o recebido ao estoque — origens 10 e 11).
+- **Importar XML**: envio do .xml da NF-e do fornecedor; o servidor monta o pedido com os itens da nota, que se ligam a produtos existentes ou viram produtos novos.
+
+### Orçamento de compra, devoluções, compras em aberto
+
+- **Orçamento de compra**: lista Orçamento · Status · Fornecedor · Data · Valor; gera pedido ("Ordering"), cancelar, e-mail, copiar (como o orçamento de venda).
+- **Devoluções**: lista Pedido · Data · Devolução efetuada por · Forma de pagamento · Valor.
+- **Compras em aberto** (relatório): pedidos com itens ainda não recebidos.
+
+### Fornecedor (`supplier`)
+
+Ficha igual à do cliente: Pessoa física/jurídica · **Tipo** (+) · Bloqueado · Razão social · Nome fantasia · CPF/CNPJ · RG/órgão/UF · sexo · nascimento · indicador IE · IE · IM · telefone · celular · e-mail · site · e-mail da NF-e · observação · **Transportadora?** · **Produtor rural?**. Abas: Endereços, Contatos, Dados bancários (+ chaves PIX), Documentos, **Financeiro** (contas do fornecedor). Modelo: SupplierID, SupplierTypeID, OfficialName, Name, Blocked, IsCarrier, RuralProducer, InExterior, …
+
+**Detalhes lidos em 09/11/2026 (só leitura, fornecedor 3 Equipesca):**
+- Lista (Compras › Fornecedores): Nome · Tipo · Telefone · Celular · Email · lápis/lixeira; filtros Bloqueado, CPF, CNPJ, Tipo, Telefone, E-mail, **Transportador**. Excluir: "Deseja realmente excluir o Fornecedor?" → "Registro excluido com sucesso." ou a mensagem de erro do servidor. A lista **não traz CNPJ, endereços etc.** (só a ficha).
+- Campos (`currentSupplier`): SupplierID, SupplierTypeID, OfficialName (razão social/nome), Name (fantasia/apelido), Blocked, IsCarrier, RuralProducer, InExterior, **PersonEntityType (1 = Física, 0 = Jurídica)**, Cpf, DocumentNumber (RG), DocumentIssuer, DocumentState, Birthday, PersonGender, Cnpj, Ie, Im, Phone, Mobile, Email, FiscalRecipientEmail, Site, Observation, IcmsContributorTypeID (pode ficar "Selecione" = vazio), SupplierAddressList, SupplierContactList, SupplierDocumentList, SupplierBankDetailsList, **SupplierPixKeyList**, SupplierFinancialEventList.
+- **Tipos de fornecedor** (`supplier_type`, Ajustes › Pessoas): ID · Nome — 1 Geral, 2 Matéria Prima, 3 Material de Escritório, 4 Serviços, 5 Entregas. Ao salvar sem tipo, vai o 1.
+- **Salvar** (`saveSupplier`): se trocou física/jurídica num fornecedor gravado, pergunta "Você alterou o tipo de pessoa (pessoa física/pessoa jurídica). Os dados do tipo de pessoa antigo (CPF e RG ou CNPJ e IE) serão apagados. Deseja continuar?". Mensagens "Dados inseridos com sucesso." / "Dados alterados com sucesso.".
+- **Dados bancários**: select Tipo = "Conta bancaria" (Banco, Agência, Dígito, Conta, Dígito) ou "Chave Pix" (Tipo da Chave: 1 CPF, 2 CNPJ, 3 Email, 4 Celular, 5 Chave aleatória; Chave Pix). Uma lista só: Tipo/Nº Banco · Chave/Banco · Agência · Conta.
+- **Documentos**: os mesmos tipos de documento do cliente (6 Inscrição Estadual, 11 Inscrição Municipal, 12 Inscrição Estadual ST, 13 CNAE, 14 Suframa), com "+".
+- **Financeiro** (`supplier-credit`): Total vencidas · Total a vencer · Total pagas; "Parcelas do fornecedor" em Vencidas (saldo e vencimento passado) / A vencer / Pagas/Recebidas (saldo zero); colunas Vencimento · Conta · Valor · Saldo · lupa; marcar e **"Receber selecionados"** (rótulo da MarketUP, mas paga): 1 conta abre a conta a pagar, várias vão para pagar várias (`expenditure/new/<ids>`). A Equipesca tem 295 contas (pedidos de compra, conta gerencial 58, origem 6).

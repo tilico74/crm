@@ -27,6 +27,7 @@ PROJECT_APPS = [
     "apps.servicos",
     "apps.comissoes",
     "apps.estoque",
+    "apps.compras",
     "apps.financeiro",
     "apps.fiscal",
     "apps.migracao",

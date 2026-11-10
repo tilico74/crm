@@ -42,6 +42,7 @@ export type Produto = {
   reajustar_pela_margem: boolean;
   movimenta_estoque: boolean;
   movimenta_estoque_composicao: boolean;
+  estoque_minimo?: string;
   /** Venda fracionada: 1 <unidade do produto> = quantidade × unidade, a preço cada. Tudo nulo = não fraciona. */
   fragmentacao_quantidade: string | null;
   fragmentacao_unidade: number | null;

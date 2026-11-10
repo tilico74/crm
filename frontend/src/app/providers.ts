@@ -40,7 +40,9 @@ export const dataProvider: DataProvider = {
 
     const body = await call<{ count: number; results: never[] } | never[]>(`/${resource}?${params}`);
     if (Array.isArray(body)) return { data: body, total: body.length };
-    return { data: body.results, total: body.count };
+    // Campos a mais da resposta (ex.: totais de valor e saldo das contas a receber/pagar) seguem junto.
+    const { results, count, ...extras } = body as { count: number; results: never[] } & Record<string, unknown>;
+    return { data: results, total: count, ...extras };
   },
 
   getOne: async ({ resource, id }) => ({ data: await call(`/${resource}/${id}`) }),

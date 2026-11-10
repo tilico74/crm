@@ -14,6 +14,11 @@ from apps.vendas.models import Orcamento, ParametrosVenda, Pedido
 pytestmark = pytest.mark.django_db
 
 
+def receber(api, conta, baixa):
+    """Recebimento pela ficha da conta (Incluir recebimento + Salvar, como a MarketUP)."""
+    return api.patch(f"/api/contas-receber/{conta}", {"novas_baixas": [baixa]}, format="json")
+
+
 @pytest.fixture
 def admin():
     usuario = Usuario.objects.create_user("chefe", password="x", grupo=Grupo.objects.get(nome="Administrador"))
@@ -146,26 +151,25 @@ def test_receber_recibo_estorno_e_status_de_pagamento(admin, base):
     d = api.post(f"/api/pedidos/{p['id']}/concluir").data
     conta = d["parcelas"][0]["conta_receber"]
     assert api.get(f"/api/contas-receber/{conta}/recibo").status_code == 400  # sem recebimento
-    excesso = api.post(f"/api/contas-receber/{conta}/receber", {"data": hoje().isoformat(), "conta_corrente": base["caixa"].id, "valor": "100.01"}, format="json")
-    assert excesso.status_code == 400 and "excede" in str(excesso.data)
-    r = api.post(f"/api/contas-receber/{conta}/receber", {"data": hoje().isoformat(), "conta_corrente": base["caixa"].id, "valor": "102", "juros": "2", "tipo_pagamento": base["pix"].id}, format="json")
+    excesso = receber(api, conta, {"data": hoje().isoformat(), "conta_corrente": base["caixa"].id, "valor": "100.01"})
+    assert excesso.status_code == 400 and "maior que o saldo" in str(excesso.data)
+    r = receber(api, conta, {"data": hoje().isoformat(), "conta_corrente": base["caixa"].id, "valor": "102", "juros": "2", "tipo_pagamento": base["pix"].id})
     assert r.status_code == 200, r.data
-    assert r.data["saldo"] == "0.00" and r.data["situacao"] == "recebida"
-    assert LancamentoCaixa.objects.filter(credito=True, valor=Decimal("102")).exists()
+    assert r.data["saldo"] == "0.00" and r.data["situacao"] == "quitada"
+    assert LancamentoCaixa.objects.filter(credito=True, valor=Decimal("102"), conta_receber_id=conta).exists()
     pedido = api.get(f"/api/pedidos/{p['id']}").data
     assert pedido["financeiro_status"] == 3 and pedido["saldo_receber"] == "200.00" and pedido["parcelas"][0]["saldo"] == "0.00"
     recibo = api.get(f"/api/contas-receber/{conta}/recibo").data
     assert recibo["total"] == "102.00" and recibo["juros"] == "2.00" and recibo["recebi_de"] == "Ana Teste"
     assert recibo["referente"] == f"PEDIDO {p['id']} - PARCELA 1 / 3" and recibo["data"] == hoje()
-    # Estorno (X vermelho): o saldo volta e o caixa recebe a saída.
-    rid = r.data["recebimentos"][0]["id"]
-    e = api.post(f"/api/contas-receber/{conta}/recebimentos/{rid}/estornar")
-    assert e.status_code == 200 and e.data["saldo"] == "100.00"
-    assert LancamentoCaixa.objects.filter(credito=False, valor=Decimal("102")).exists()
+    # X vermelho + Salvar (como a MarketUP): o recebimento sai da lista e o movimento some do caixa.
+    e = api.patch(f"/api/contas-receber/{conta}", {"manter_baixas": []}, format="json")
+    assert e.status_code == 200 and e.data["saldo"] == "100.00" and e.data["baixas"] == []
+    assert not LancamentoCaixa.objects.filter(conta_receber_id=conta).exists()
     assert api.get(f"/api/pedidos/{p['id']}").data["financeiro_status"] == 1
     # Tudo recebido + entregue = Concluído.
     for parcela in api.get(f"/api/pedidos/{p['id']}").data["parcelas"]:
-        api.post(f"/api/contas-receber/{parcela['conta_receber']}/receber", {"data": hoje().isoformat(), "conta_corrente": base["caixa"].id, "valor": "100"}, format="json")
+        receber(api, parcela["conta_receber"], {"data": hoje().isoformat(), "conta_corrente": base["caixa"].id, "valor": "100"})
     pago = api.get(f"/api/pedidos/{p['id']}").data
     assert pago["financeiro_status"] == 2 and pago["situacao"] == "faturado"  # falta entregar
     entregue = api.post(f"/api/pedidos/{p['id']}/entregar", {}, format="json").data
@@ -191,7 +195,7 @@ def test_cancelar_estorna_o_recebido_e_tira_as_contas(admin, base):
     api, _ = admin
     p = pedido_pronto(api, base, condicao=base["tres"])
     d = api.post(f"/api/pedidos/{p['id']}/concluir").data
-    api.post(f"/api/contas-receber/{d['parcelas'][0]['conta_receber']}/receber", {"data": hoje().isoformat(), "conta_corrente": base["caixa"].id, "valor": "100"}, format="json")
+    receber(api, d["parcelas"][0]["conta_receber"], {"data": hoje().isoformat(), "conta_corrente": base["caixa"].id, "valor": "100"})
     previa = api.get(f"/api/pedidos/{p['id']}/cancelamento").data
     assert previa["valor_recebido"] == "100.00"
     assert api.post(f"/api/pedidos/{p['id']}/cancelar", {"valor_estorno": "150"}, format="json").status_code == 400
@@ -279,12 +283,12 @@ def test_recebimento_e_estorno_exigem_conta_corrente(admin, base):
     p = pedido_pronto(api, base)
     d = api.post(f"/api/pedidos/{p['id']}/concluir").data
     conta = d["parcelas"][0]["conta_receber"]
-    sem = api.post(f"/api/contas-receber/{conta}/receber", {"data": hoje().isoformat(), "valor": "300"}, format="json")
-    assert sem.status_code == 400 and "conta corrente" in str(sem.data["conta_corrente"])
+    sem = receber(api, conta, {"data": hoje().isoformat(), "valor": "300"})
+    assert sem.status_code == 400 and "conta corrente" in str(sem.data)
     inativa = ContaCorrente.objects.create(nome="Banco antigo", ativo=False)
-    assert api.post(f"/api/contas-receber/{conta}/receber", {"data": hoje().isoformat(), "valor": "300", "conta_corrente": inativa.id}, format="json").status_code == 400
-    ok = api.post(f"/api/contas-receber/{conta}/receber", {"data": hoje().isoformat(), "valor": "300", "conta_corrente": base["caixa"].id}, format="json")
-    assert ok.status_code == 200 and ok.data["recebimentos"][0]["conta_corrente_nome"] == "Caixa"
+    assert receber(api, conta, {"data": hoje().isoformat(), "valor": "300", "conta_corrente": inativa.id}).status_code == 400
+    ok = receber(api, conta, {"data": hoje().isoformat(), "valor": "300", "conta_corrente": base["caixa"].id})
+    assert ok.status_code == 200 and ok.data["baixas"][0]["conta_corrente_nome"] == "Caixa"
     assert LancamentoCaixa.objects.get(credito=True, origem_id=p["id"]).conta_corrente_id == base["caixa"].id
     # Cancelar com estorno: precisa dizer de qual conta sai o dinheiro.
     sem_conta = api.post(f"/api/pedidos/{p['id']}/cancelar", {"valor_estorno": "300"}, format="json")

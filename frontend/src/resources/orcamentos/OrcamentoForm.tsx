@@ -15,7 +15,7 @@ import type { Produto, Servico, Unidade } from "@/resources/catalogo/types";
 import type { Cliente, EnderecoCliente, ListaPreco } from "@/resources/clientes/types";
 import { BarraAcoes } from "@/resources/financeiro/BarraAcoes";
 import type { TipoPagamento } from "@/resources/financeiro/types";
-import { CancelarPedidoModal, EntregarModal, PagamentoFaturado, ReceberModal, ReciboModal } from "@/resources/pedidos/ModaisPedido";
+import { CancelarPedidoModal, EntregarModal, PagamentoFaturado, ReciboModal } from "@/resources/pedidos/ModaisPedido";
 import { ENTREGA, FINANCEIRO, ROTA_PEDIDOS, SITUACAO, type ExtrasPedido, type Pedido } from "@/resources/pedidos/types";
 
 import { DescontoItemModal } from "./DescontoItemModal";
@@ -69,7 +69,7 @@ function DocumentoVendaForm({ tipo }: { tipo: TipoDocumento }) {
   // Pedido: modais de concluir, entregar, receber, recibo e cancelar.
   const [modal, setModal] = useState<
     | null
-    | { tipo: "receber" | "recibo"; conta: number }
+    | { tipo: "recibo"; conta: number }
     | { tipo: "entregar" }
     | { tipo: "cancelarRecebido"; recebido: number }
     | { tipo: "gerarPedido" }
@@ -506,7 +506,7 @@ function DocumentoVendaForm({ tipo }: { tipo: TipoDocumento }) {
             pendente={Number(dados.saldo_receber ?? 0)}
             podeReceber={pode("/financeiro/contas-a-receber", "adicionar")}
             onRecibo={(conta) => setModal({ tipo: "recibo", conta })}
-            onReceber={(conta) => setModal({ tipo: "receber", conta })}
+            onReceber={(conta) => navigate(`/financeiro/contas-a-receber/${conta}`)}
           />
         ) : (
           <Pagamento
@@ -593,6 +593,7 @@ function DocumentoVendaForm({ tipo }: { tipo: TipoDocumento }) {
           title="Gerar pedido"
           message={`Deseja realmente gerar pedido para o orçamento ${numero}? Você será redirecionado para o novo pedido.`}
           confirmLabel="Gerar pedido"
+          neutro
           onCancel={() => setModal(null)}
           onConfirm={gerarPedido}
         />
@@ -613,13 +614,12 @@ function DocumentoVendaForm({ tipo }: { tipo: TipoDocumento }) {
         <EntregarModal
           numero={numero}
           onFechar={() => setModal(null)}
-          onConfirmar={(data) => {
+          onConfirmar={(data, local) => {
             setModal(null);
-            void acaoPedido(`${id}/entregar`, { data }, (n) => `Pedido Nº ${n} entregue com sucesso!`);
+            void acaoPedido(`${id}/entregar`, { data, local }, (n) => `Pedido Nº ${n} entregue com sucesso!`);
           }}
         />
       )}
-      {modal?.tipo === "receber" && <ReceberModal contaId={modal.conta} tipos={tipos} onFechar={() => setModal(null)} onMudou={() => void recarregar()} />}
       {modal?.tipo === "recibo" && <ReciboModal contaId={modal.conta} onFechar={() => setModal(null)} />}
     </>
   );

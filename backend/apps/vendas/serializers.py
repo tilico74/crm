@@ -247,7 +247,7 @@ class ParcelaPedidoSerializer(ParcelaVendaSerializer):
 
     def get_ultimo_recebimento(self, parcela):
         conta = self._conta(parcela)
-        datas = [r.data for r in conta.recebimentos.all() if not r.estornado_em] if conta else []
+        datas = [r.data for r in conta.recebimentos.all()] if conta else []
         return max(datas) if datas else None
 
 

@@ -95,6 +95,8 @@ class CancelarSerializer(serializers.Serializer):
     data = serializers.DateField(required=False)
     tipo_pagamento = serializers.PrimaryKeyRelatedField(queryset=TipoPagamento.objects.all(), required=False, allow_null=True)
     conta_corrente = serializers.PrimaryKeyRelatedField(queryset=ContaCorrente.objects.all(), required=False, allow_null=True)
+    # Itens já entregues voltam para este local (padrão: Estoque Padrão), como o StockLocationID do cancelamento da MarketUP.
+    local = serializers.IntegerField(required=False, allow_null=True)
 
 
 class PedidoViewSet(OrcamentoViewSet):
@@ -228,14 +230,23 @@ class PedidoViewSet(OrcamentoViewSet):
     @action(detail=True, methods=["post"])
     @transaction.atomic
     def entregar(self, request, pk=None):
-        """"Entregar pedido": marca os itens como entregues. A baixa no estoque por local vem com a T301."""
+        """
+        "Entregar pedido" (SaleOrderDeliveryController): marca os itens como entregues e dá saída no estoque dos produtos
+        que movimentam estoque, no local escolhido (padrão: Estoque Padrão). Origem 1 (pedido de venda).
+        """
+        from apps.estoque.models import LocalEstoque
+        from apps.estoque.regras import saida_do_pedido
+
         pedido = self.get_object()
         if pedido.status != Pedido.Status.FATURADO:
             raise ValidationError({"detail": "Só pedido faturado pode ser entregue. Conclua a venda primeiro."})
         if pedido.situacao_entrega == Pedido.Entrega.ENTREGUE:
             raise ValidationError({"detail": "Este pedido já foi entregue."})
         data = _data(request.data.get("data"), "data") or timezone.localdate()
-        for item in pedido.itens.all():
+        local = LocalEstoque.objects.filter(pk=request.data.get("local"), ativo=True).first() if request.data.get("local") else None
+        pendentes = [(item, item.quantidade - item.entregue) for item in pedido.itens.select_related("produto", "unidade") if item.quantidade > item.entregue]
+        saida_do_pedido(pedido, pendentes, usuario=request.user, data=data, local=local)
+        for item, _ in pendentes:
             item.entregue = item.quantidade
             item.save(update_fields=["entregue"])
         pedido.situacao_entrega = Pedido.Entrega.ENTREGUE
@@ -273,14 +284,23 @@ class PedidoViewSet(OrcamentoViewSet):
         if estorno > 0 and not dados.get("conta_corrente"):
             raise ValidationError({"conta_corrente": "Informe a conta corrente de onde sai o valor estornado."})
         if estorno > 0:
+            from apps.financeiro.recebimentos import CONTA_DEVOLUCOES, conta_gerencial
+
             LancamentoCaixa.objects.create(
                 data=dados.get("data") or timezone.localdate(), conta_corrente=dados.get("conta_corrente"),
                 tipo_pagamento=dados.get("tipo_pagamento"), credito=False, valor=estorno,
-                descricao=f"Estorno do cancelamento do Pedido de Venda Nº {pedido.id}",
+                descricao=f"ESTORNO DO CANCELAMENTO DO PEDIDO DE VENDA Nº {pedido.id} - DEVOLUÇÕES / ABATIMENTOS",
+                conta_gerencial=conta_gerencial(CONTA_DEVOLUCOES),
                 origem=ContaReceber.Origem.VENDAS, origem_id=pedido.id, criado_por=request.user, atualizado_por=request.user,
             )
         ContaReceber.objects.filter(pk__in=[c.pk for c in contas]).update(cancelada=True, atualizado_em=timezone.now())
         pedido.parcelas.all().delete()
+        # Estoque (T301): o que foi entregue volta ao estoque (origem 6, cancelamento de pedido de venda).
+        from apps.estoque.models import LocalEstoque
+        from apps.estoque.regras import entrada_do_cancelamento
+
+        local = LocalEstoque.objects.filter(pk=dados.get("local"), ativo=True).first() if dados.get("local") else None
+        entrada_do_cancelamento(pedido, usuario=request.user, local=local)
         pedido.status = Pedido.Status.CANCELADO
         pedido.situacao_entrega = Pedido.Entrega.CANCELADO
         pedido.situacao_financeira = Pedido.Financeiro.CANCELADO

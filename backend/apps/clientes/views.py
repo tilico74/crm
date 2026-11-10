@@ -57,7 +57,7 @@ class TipoDocumentoViewSet(AuditoriaViewSet):
 
 class ClienteViewSet(AuditoriaViewSet):
     funcionalidade = "clientes"
-    funcionalidades_leitura = ["orcamentos", "pedidos"]
+    funcionalidades_leitura = ["orcamentos", "pedidos", "contas_receber", "contas_pagar"]
     queryset = Cliente.objects.select_related("lista_preco")
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["nome", "apelido", "cpf", "cnpj", "telefone", "celular", "email"]

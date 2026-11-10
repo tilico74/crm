@@ -103,7 +103,7 @@ class ProdutoSerializer(serializers.ModelSerializer):
             "codigo_balanca", "categoria", "categoria_nome", "subcategoria", "subcategoria_nome", "marca", "marca_nome",
             "modelo", "codigo_interno", "tags",
             "preco_custo", "preco_venda", "preco_atacado", "quantidade_minima_atacado", "reajustar_pela_margem",
-            "movimenta_estoque", "movimenta_estoque_composicao",
+            "movimenta_estoque", "movimenta_estoque_composicao", "estoque_minimo",
             "fragmentacao_quantidade", "fragmentacao_unidade", "fragmentacao_unidade_sigla", "fragmentacao_preco",
             "tipo_fiscal", "ncm", "origem", "cest", "classificacao",
             "composicao", "criado_em", "atualizado_em",

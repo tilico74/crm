@@ -1,4 +1,4 @@
-import { IconFileInvoice, IconSearch, IconX } from "@tabler/icons-react";
+import { IconFileInvoice, IconSearch } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 import { botaoCancelar, botaoConfirmar, Modal } from "@/components/Modal";
@@ -9,12 +9,11 @@ import { formatarData, formatarMoeda } from "@/lib/mascaras";
 import { cn } from "@/lib/utils";
 import type { ContaCorrente, TipoPagamento } from "@/resources/financeiro/types";
 
-import type { ContaReceber, ParcelaPedido, Recibo } from "./types";
+import type { ParcelaPedido, Recibo } from "./types";
 
 const campo = "h-12 w-full rounded-xs border border-line bg-surface-raised px-3 text-base text-ink focus:border-brand-cyan focus:outline-none md:h-[34px] md:text-sm";
 const rotulo = "text-[11px] font-semibold uppercase text-primary";
 const hoje = () => new Date().toLocaleDateString("sv-SE");
-const arred = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100;
 
 function useContasCorrentes() {
   const [contas, setContas] = useState<ContaCorrente[]>([]);
@@ -22,150 +21,6 @@ function useContasCorrentes() {
     api<{ results: ContaCorrente[] }>("/contas-correntes?page_size=100").then((r) => setContas(r.results.filter((c) => c.ativo)), () => undefined);
   }, []);
   return contas;
-}
-
-/**
- * "Efetuar recebimento" da conta a receber da parcela (painel da tela receivable/detail da MarketUP):
- * data, conta corrente, juros (+), descontos (−), valor recebido (=) e forma; embaixo, o histórico
- * de recebimentos com o X vermelho que estorna. A tela completa de contas a receber vem na T302.
- */
-export function ReceberModal({ contaId, tipos, onFechar, onMudou }: { contaId: number; tipos: TipoPagamento[]; onFechar: () => void; onMudou: () => void }) {
-  const contas = useContasCorrentes();
-  const [conta, setConta] = useState<ContaReceber | null>(null);
-  const [data, setData] = useState(hoje());
-  const [contaCorrente, setContaCorrente] = useState<number | "">("");
-  const [juros, setJuros] = useState("0");
-  const [desconto, setDesconto] = useState("0");
-  const [valor, setValor] = useState<string | null>(null);
-  const [forma, setForma] = useState<number | "">("");
-  const [erro, setErro] = useState("");
-  const [gravando, setGravando] = useState(false);
-
-  const carregar = () =>
-    api<ContaReceber>(`/contas-receber/${contaId}`).then((c) => {
-      setConta(c);
-      setForma((f) => f || c.tipo_pagamento || "");
-      setValor(null);
-      setJuros("0");
-      setDesconto("0");
-    });
-  useEffect(() => {
-    carregar().catch((e: ApiError) => setErro(e.message));
-  }, [contaId]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    // Como na MarketUP: vem com a conta marcada como Principal; sem principal, a pessoa escolhe (é obrigatória).
-    const principal = contas.find((c) => c.principal);
-    if (!contaCorrente && principal) setContaCorrente(principal.id);
-  }, [contas, contaCorrente]);
-
-  if (!conta) return <Modal titulo="Efetuar recebimento" onFechar={onFechar}><p className="p-4 text-ink-muted">{erro || "Carregando…"}</p></Modal>;
-
-  // Valor recebido sugerido = saldo + juros − desconto (como o "=" da MarketUP).
-  const sugerido = arred(Number(conta.saldo) + Number(juros || 0) - Number(desconto || 0));
-  const recebido = valor ?? String(sugerido);
-
-  const receber = async () => {
-    setGravando(true);
-    setErro("");
-    try {
-      await api(`/contas-receber/${contaId}/receber`, {
-        method: "POST",
-        body: JSON.stringify({ data, valor: recebido, juros, desconto, tipo_pagamento: forma || null, conta_corrente: contaCorrente || null }),
-      });
-      await carregar();
-      onMudou();
-    } catch (e) {
-      setErro(e instanceof ApiError ? e.message : "Não foi possível receber.");
-    } finally {
-      setGravando(false);
-    }
-  };
-  const estornar = async (id: number) => {
-    if (!window.confirm("Estornar este recebimento? O valor volta a ficar em aberto e o caixa recebe a saída.")) return;
-    try {
-      await api(`/contas-receber/${contaId}/recebimentos/${id}/estornar`, { method: "POST" });
-      await carregar();
-      onMudou();
-    } catch (e) {
-      setErro(e instanceof ApiError ? e.message : "Não foi possível estornar.");
-    }
-  };
-
-  const aberta = Number(conta.saldo) > 0 && !conta.cancelada;
-  return (
-    <Modal titulo="Efetuar recebimento" onFechar={onFechar} largura="max-w-[860px]">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-1 pb-3">
-        <div>
-          <p className="text-lg text-ink">{conta.descricao} <span className="text-sm text-ink-muted">· parcela {conta.parcela}/{conta.parcelas}</span></p>
-          <p className="text-sm text-ink-muted">Sacado: {conta.cliente_nome} · vencimento {formatarData(conta.vencimento)}</p>
-        </div>
-        <p className="text-right">
-          <span className="block text-[11px] uppercase text-ink-muted">Valor · Saldo</span>
-          <span className="text-lg tabular-nums">{formatarMoeda(conta.valor)} · <strong className={Number(conta.saldo) > 0 ? "text-primary" : "text-success"}>{formatarMoeda(conta.saldo)}</strong></span>
-        </p>
-      </div>
-
-      {aberta && (
-        <div className="grid grid-cols-1 gap-3 py-3 sm:grid-cols-3">
-          <label><span className={rotulo}>Data</span><input type="date" value={data} onChange={(e) => setData(e.target.value)} className={campo} /></label>
-          <label>
-            <span className={rotulo}>Conta corrente *</span>
-            <select value={contaCorrente} onChange={(e) => setContaCorrente(e.target.value ? Number(e.target.value) : "")} className={campo}>
-              <option value="">—</option>
-              {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-            </select>
-          </label>
-          <label>
-            <span className={rotulo}>Efetuado em</span>
-            <select value={forma} onChange={(e) => setForma(e.target.value ? Number(e.target.value) : "")} className={campo}>
-              <option value="">—</option>
-              {tipos.map((t) => <option key={t.id} value={t.id}>{t.descricao}</option>)}
-            </select>
-          </label>
-          <label><span className={rotulo}>Juros (+)</span><CampoNumero value={juros} prefixo="R$ " onChange={(v) => { setJuros(v); setValor(null); }} className={cn(campo, "text-right")} /></label>
-          <label><span className={rotulo}>Descontos (−)</span><CampoNumero value={desconto} prefixo="R$ " onChange={(v) => { setDesconto(v); setValor(null); }} className={cn(campo, "text-right")} /></label>
-          <label><span className={rotulo}>Valor recebido (=)</span><CampoNumero data-autofocus value={recebido} prefixo="R$ " onChange={setValor} className={cn(campo, "text-right font-bold")} /></label>
-          <div className="sm:col-span-3 flex justify-end">
-            <button type="button" onClick={receber} disabled={gravando} className={botaoConfirmar}>{gravando ? "Gravando…" : "Incluir recebimento"}</button>
-          </div>
-        </div>
-      )}
-      {erro && <p role="alert" className="px-1 pb-2 text-sm font-semibold text-error">{erro}</p>}
-
-      <h3 className="mt-2 border-b border-line pb-1 text-sm font-semibold uppercase text-ink">Histórico de recebimentos</h3>
-      {conta.recebimentos.length === 0 ? (
-        <p className="py-3 text-sm text-ink-muted">Nenhum recebimento.</p>
-      ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs uppercase text-ink-muted">
-              <th className="py-2">Data</th><th className="text-right">Recebido</th><th className="text-right">Desconto</th><th className="text-right">Juros</th><th className="pl-3">Forma</th><th>Conta</th><th />
-            </tr>
-          </thead>
-          <tbody>
-            {conta.recebimentos.map((r) => (
-              <tr key={r.id} className={cn("border-t border-line", r.estornado_em && "text-ink-muted line-through")}>
-                <td className="py-2 tabular-nums">{formatarData(r.data)}</td>
-                <td className="text-right tabular-nums">{formatarMoeda(r.valor)}</td>
-                <td className="text-right tabular-nums">{formatarMoeda(r.desconto)}</td>
-                <td className="text-right tabular-nums">{formatarMoeda(r.juros)}</td>
-                <td className="pl-3">{r.tipo_pagamento_nome ?? "—"}</td>
-                <td>{r.conta_corrente_nome ?? "—"}</td>
-                <td className="text-right">
-                  {!r.estornado_em && !conta.cancelada && (
-                    <button type="button" onClick={() => estornar(r.id)} aria-label="Estornar recebimento" title="Estornar" className="inline-flex size-10 items-center justify-center text-error hover:scale-110">
-                      <IconX size={22} stroke={3} aria-hidden />
-                    </button>
-                  )}
-                  {r.estornado_em && <span className="text-xs no-underline">estornado</span>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </Modal>
-  );
 }
 
 /**
@@ -275,8 +130,18 @@ export function CancelarPedidoModal({ numero, recebido, tipos, onFechar, onConfi
 }
 
 /** "Entregar pedido": data da entrega. O local de estoque e a baixa dos itens chegam com a T301. */
-export function EntregarModal({ numero, onFechar, onConfirmar }: { numero: number; onFechar: () => void; onConfirmar: (data: string) => void }) {
+export function EntregarModal({ numero, onFechar, onConfirmar }: { numero: number; onFechar: () => void; onConfirmar: (data: string, local: number | null) => void }) {
   const [data, setData] = useState(hoje());
+  // "Selecione o local de estoque" (MarketUP): a saída dos produtos que movimentam estoque sai deste local.
+  const [locais, setLocais] = useState<{ id: number; nome: string; padrao: boolean; ativo: boolean }[]>([]);
+  const [local, setLocal] = useState<number | "">("");
+  useEffect(() => {
+    api<{ id: number; nome: string; padrao: boolean; ativo: boolean }[] | { results: { id: number; nome: string; padrao: boolean; ativo: boolean }[] }>("/locais-estoque").then((r) => {
+      const lista = (Array.isArray(r) ? r : r.results).filter((l) => l.ativo);
+      setLocais(lista);
+      setLocal(lista.find((l) => l.padrao)?.id ?? lista[0]?.id ?? "");
+    }, () => undefined);
+  }, []);
   return (
     <Modal
       titulo="Entregar pedido"
@@ -285,12 +150,19 @@ export function EntregarModal({ numero, onFechar, onConfirmar }: { numero: numbe
       rodape={
         <>
           <button type="button" onClick={onFechar} className={botaoCancelar}>Fechar</button>
-          <button type="button" onClick={() => onConfirmar(data)} className={botaoConfirmar}>Entregar pedido</button>
+          <button type="button" onClick={() => onConfirmar(data, local || null)} className={botaoConfirmar}>Entregar pedido</button>
         </>
       }
     >
-      <p className="px-1 pb-3 text-sm text-ink">Confirme a entrega de todos os itens do pedido {numero}.</p>
-      <label className="block px-1"><span className={rotulo}>Data de entrega</span><input type="date" data-autofocus value={data} onChange={(e) => setData(e.target.value)} className={campo} /></label>
+      <p className="px-1 pb-3 text-sm text-ink">Selecione o local de estoque e confirme a entrega de todos os itens do pedido {numero}. Os produtos que movimentam estoque saem deste local.</p>
+      <div className="grid grid-cols-1 gap-3 px-1 sm:grid-cols-2">
+        <label className="block"><span className={rotulo}>Local de estoque</span>
+          <select value={local} onChange={(e) => setLocal(e.target.value ? Number(e.target.value) : "")} className={campo}>
+            {locais.map((l) => <option key={l.id} value={l.id}>{l.nome}</option>)}
+          </select>
+        </label>
+        <label className="block"><span className={rotulo}>Data de entrega</span><input type="date" data-autofocus value={data} onChange={(e) => setData(e.target.value)} className={campo} /></label>
+      </div>
     </Modal>
   );
 }

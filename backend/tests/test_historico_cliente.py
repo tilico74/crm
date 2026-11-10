@@ -13,6 +13,11 @@ from apps.vendas.models import Orcamento, Pedido
 pytestmark = pytest.mark.django_db
 
 
+def receber(api, conta, baixa):
+    """Recebimento pela ficha da conta (Incluir recebimento + Salvar, como a MarketUP)."""
+    return api.patch(f"/api/contas-receber/{conta}", {"novas_baixas": [baixa]}, format="json")
+
+
 @pytest.fixture
 def api():
     cliente_api = APIClient()
@@ -50,7 +55,7 @@ def test_historico_junta_orcamentos_e_pedidos_com_status_atual(api):
     assert h["results"][2]["chave"] == o1.id and h["results"][0]["origem_id"] == 8 and h["results"][2]["origem_id"] == -8
     # O status acompanha o documento: entregue e pago vira CONCLUÍDO.
     conta = api.get(f"/api/pedidos/{pedido['id']}").data["parcelas"][0]["conta_receber"]
-    api.post(f"/api/contas-receber/{conta}/receber", {"data": "2026-11-08", "valor": "20", "conta_corrente": ContaCorrente.objects.create(nome="Caixa", interna=True).id}, format="json")
+    receber(api, conta, {"data": "2026-11-08", "valor": "20", "conta_corrente": ContaCorrente.objects.create(nome="Caixa", interna=True).id})
     api.post(f"/api/pedidos/{pedido['id']}/entregar", {}, format="json")
     assert api.get(f"/api/clientes/{cliente.id}/historico").data["results"][0]["status"] == "CONCLUÍDO"
     # As anotações continuam na ficha, não nessa lista.

@@ -574,7 +574,7 @@ const rotuloBanco = (bancos: Banco[], id: number | null) => {
 };
 
 /** Botão "+" verde da MarketUP ao lado de um select: cadastra um item novo só com o nome. */
-function NovoRapido({ rotulo, onCriar }: { rotulo: string; onCriar: (nome: string) => Promise<void> }) {
+export function NovoRapido({ rotulo, onCriar }: { rotulo: string; onCriar: (nome: string) => Promise<void> }) {
   const [aberto, setAberto] = useState(false);
   const [nome, setNome] = useState("");
   const [erro, setErro] = useState("");
@@ -621,10 +621,11 @@ function NovoRapido({ rotulo, onCriar }: { rotulo: string; onCriar: (nome: strin
   );
 }
 
-/** Anexo do documento: só depois de salvo (precisa do id do documento). */
-function Anexo({ documento, clienteId, podeSalvar, onAnexo, onErro }: {
-  documento: DocumentoCliente;
+/** Anexo do documento: só depois de salvo (precisa do id do documento). `recurso`: clientes ou fornecedores. */
+export function Anexo({ documento, clienteId, podeSalvar, onAnexo, onErro, recurso = "clientes" }: {
+  documento: { id?: number; arquivo?: string | null };
   clienteId: number | null;
+  recurso?: string;
   podeSalvar: boolean;
   onAnexo: (arquivo: string | null) => void;
   onErro: (mensagem: string) => void;
@@ -635,7 +636,7 @@ function Anexo({ documento, clienteId, podeSalvar, onAnexo, onErro }: {
     const corpo = new FormData();
     corpo.append("arquivo", arquivo);
     try {
-      const r = await api<DocumentoCliente>(`/clientes/${clienteId}/documentos/${documento.id}/arquivo`, { method: "POST", body: corpo });
+      const r = await api<DocumentoCliente>(`/${recurso}/${clienteId}/documentos/${documento.id}/arquivo`, { method: "POST", body: corpo });
       onAnexo(r.arquivo ?? null);
     } catch (e) {
       if (e instanceof ApiError) onErro(String((e.errors.arquivo as string[] | undefined)?.join(" ") ?? e.message));

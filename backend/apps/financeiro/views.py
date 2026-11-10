@@ -10,6 +10,7 @@ from .serializers import BancoSerializer, ContaCorrenteSerializer, ContaGerencia
 
 class ContaGerencialViewSet(AuditoriaViewSet):
     funcionalidade = "contas_gerenciais"
+    funcionalidades_leitura = ["contas_receber", "contas_pagar", "movimentacao_caixa", "fluxo_caixa"]  # classificação nas telas do financeiro
     queryset = ContaGerencial.objects.select_related("conta_origem")
     serializer_class = ContaGerencialSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -42,7 +43,7 @@ class BancoViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ContaCorrenteViewSet(AuditoriaViewSet):
     funcionalidade = "contas_correntes"
-    funcionalidades_leitura = ["pedidos", "contas_receber"]  # cancelar pedido e receber
+    funcionalidades_leitura = ["pedidos", "contas_receber", "contas_pagar", "movimentacao_caixa", "fluxo_caixa"]  # cancelar pedido, baixas e caixa
     queryset = ContaCorrente.objects.select_related("banco")
     serializer_class = ContaCorrenteSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -58,7 +59,7 @@ class ContaCorrenteViewSet(AuditoriaViewSet):
 
 class TipoPagamentoViewSet(AuditoriaViewSet):
     funcionalidade = "tipos_pagamento"
-    funcionalidades_leitura = ["orcamentos", "pedidos"]
+    funcionalidades_leitura = ["orcamentos", "pedidos", "contas_receber", "contas_pagar", "movimentacao_caixa", "fluxo_caixa"]
     queryset = TipoPagamento.objects.prefetch_related("condicoes")
     serializer_class = TipoPagamentoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

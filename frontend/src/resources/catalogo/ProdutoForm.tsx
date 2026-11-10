@@ -9,6 +9,7 @@ import { TabelaEditavel, type TabelaEditavelRef } from "@/components/TabelaEdita
 import { api, ApiError } from "@/lib/api";
 import { formatarMoeda } from "@/lib/mascaras";
 import { cn } from "@/lib/utils";
+import { CampoNumero } from "@/components/CampoNumero";
 import { BarraAcoes } from "@/resources/financeiro/BarraAcoes";
 
 import { CampoLinha } from "./campo";
@@ -22,7 +23,7 @@ const VAZIO: Dados = {
   ativo: true, codigo_barras: "", descricao: "", tipo_item: "produto", unidade: 1, codigo_balanca: "",
   categoria: null, subcategoria: null, marca: null, modelo: "", codigo_interno: "", tags: [],
   preco_custo: "0.00", preco_venda: "0.00", preco_atacado: "0.00", quantidade_minima_atacado: "0", reajustar_pela_margem: false,
-  movimenta_estoque: false, movimenta_estoque_composicao: false,
+  movimenta_estoque: false, movimenta_estoque_composicao: false, estoque_minimo: "0",
   fragmentacao_quantidade: null, fragmentacao_unidade: null, fragmentacao_preco: null,
   tipo_fiscal: "", ncm: "", origem: null, cest: "", classificacao: "comum", composicao: [],
 };
@@ -289,6 +290,17 @@ export function ProdutoForm() {
                 <SwitchField label="Movimentar estoque da composição" checked={dados.movimenta_estoque_composicao} onChange={(v) => podeSalvar && set("movimenta_estoque_composicao", v)} />
                 <p className="text-xs text-ink-muted">O estoque dos itens do kit muda a cada venda.</p>
               </div>
+              <label className="block sm:w-1/2">
+                <span className="mb-1 block font-label text-sm text-ink-muted">Estoque mínimo</span>
+                <CampoNumero
+                  casas={3}
+                  value={dados.estoque_minimo ?? "0"}
+                  disabled={!podeSalvar}
+                  onChange={(v) => set("estoque_minimo", v)}
+                  className="h-12 w-full rounded-xs border border-line bg-surface-raised px-3 text-right text-base tabular-nums text-ink focus:border-brand-cyan focus:outline-none md:h-[34px] md:text-sm"
+                />
+                <span className="text-xs text-ink-muted">Abaixo disso, a Consulta de estoque destaca o item.</span>
+              </label>
             </div>
           )}
           {aba === "Fiscal" && (

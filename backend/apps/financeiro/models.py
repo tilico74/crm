@@ -209,6 +209,10 @@ class ContaPagar(Titulo):
     fornecedor = models.ForeignKey(
         "compras.Fornecedor", verbose_name="beneficiário (fornecedor)", on_delete=models.PROTECT, null=True, blank=True, related_name="contas_pagar"
     )
+    # Pedido de compra: origem 6 (Compras), número = pedido; a parcela é a do pedido (PurchaseOrderInstallment.EventID).
+    parcela_compra = models.ForeignKey(
+        "compras.ParcelaPedidoCompra", verbose_name="parcela do pedido de compra", on_delete=models.SET_NULL, null=True, blank=True, related_name="contas"
+    )
 
     funcionario = models.ForeignKey(
         "usuarios.Funcionario", verbose_name="beneficiário (funcionário)", on_delete=models.PROTECT, null=True, blank=True, related_name="contas_pagar"

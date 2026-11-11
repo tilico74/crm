@@ -1,5 +1,5 @@
 import { IconBarcode, IconCamera, IconCircleArrowRight, IconCircleChevronDown, IconCircleMinus, IconCirclePlus, IconCopy, IconEqual, IconList, IconMessage, IconPrinter, IconSearch, IconTrash, IconUser } from "@tabler/icons-react";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 
 import { useMe } from "@/app/useMe";
@@ -42,9 +42,9 @@ const VAZIO: Dados = {
   itens: [], parcelas: [],
 };
 
-const campoCaixa = "h-12 w-full rounded-xs border border-line bg-surface-raised px-3 text-base text-ink focus:border-brand-cyan focus:outline-none md:h-[34px] md:text-sm";
-const iconeTopo = "inline-flex size-12 items-center justify-center text-primary hover:bg-primary-light";
-const rotuloMini = "text-[11px] font-semibold uppercase text-primary";
+export const campoCaixa = "h-12 w-full rounded-xs border border-line bg-surface-raised px-3 text-base text-ink focus:border-brand-cyan focus:outline-none md:h-[34px] md:text-sm";
+export const iconeTopo = "inline-flex size-12 items-center justify-center text-primary hover:bg-primary-light";
+export const rotuloMini = "text-[11px] font-semibold uppercase text-primary";
 
 /** Vendas › Orçamento: ficha com as seções da MarketUP (Orçamento, Cliente, Itens, Pagamento). */
 export function OrcamentoForm() {
@@ -770,7 +770,14 @@ function BuscaCliente({ nome, disabled, erro, credito, onEscolher, onLimpar, onC
 const ITEM_NOVO = { quantidade: "1", valor_unitario: "0.00", unidade: null as number | null };
 
 /** Faixa azul "Digite o nome ou código do item · Qntd. (unidade ⓥ) · Unitário · Total · Incluir no pedido". */
-function IncluirItem({ catalogo, lista, onIncluir }: { catalogo: ItemCatalogo[]; lista: ListaPreco | null; onIncluir: (i: ItemOrcamento) => void }) {
+export function IncluirItem({ catalogo, lista, onIncluir, precoSugerido = precoNaLista, rotuloIncluir = "no pedido" }: {
+  catalogo: ItemCatalogo[];
+  lista: ListaPreco | null;
+  onIncluir: (i: ItemOrcamento) => void;
+  /** Compra: o unitário sugerido é o custo do produto, não o preço de venda. */
+  precoSugerido?: (item: ItemCatalogo, quantidade: number, lista: ListaPreco | null, unidade?: number | null) => string;
+  rotuloIncluir?: string;
+}) {
   const [termo, setTermo] = useState("");
   const [escolhido, setEscolhido] = useState<ItemCatalogo | null>(null);
   const [linha, setLinha] = useState(ITEM_NOVO);
@@ -788,13 +795,13 @@ function IncluirItem({ catalogo, lista, onIncluir }: { catalogo: ItemCatalogo[];
     setEscolhido(c);
     setTermo(c.nome);
     setErro("");
-    setLinha({ quantidade: "1", unidade: c.unidade, valor_unitario: precoNaLista(c, 1, lista, c.unidade) });
+    setLinha({ quantidade: "1", unidade: c.unidade, valor_unitario: precoSugerido(c, 1, lista, c.unidade) });
   };
   const mudarQuantidade = (q: string) =>
-    setLinha((l) => ({ ...l, quantidade: q, valor_unitario: escolhido ? precoNaLista(escolhido, Number(q || 0), lista, l.unidade) : l.valor_unitario }));
+    setLinha((l) => ({ ...l, quantidade: q, valor_unitario: escolhido ? precoSugerido(escolhido, Number(q || 0), lista, l.unidade) : l.valor_unitario }));
   // Trocar para a unidade da fração usa o valor da fração; voltar usa o varejo/atacado.
   const mudarUnidade = (unidade: number) =>
-    setLinha((l) => ({ ...l, unidade, valor_unitario: escolhido ? precoNaLista(escolhido, Number(l.quantidade || 0), lista, unidade) : l.valor_unitario }));
+    setLinha((l) => ({ ...l, unidade, valor_unitario: escolhido ? precoSugerido(escolhido, Number(l.quantidade || 0), lista, unidade) : l.valor_unitario }));
   const passo = (delta: number) => mudarQuantidade(String(Math.max(0, Number(linha.quantidade || 0) + delta)));
 
   const incluir = () => {
@@ -863,7 +870,7 @@ function IncluirItem({ catalogo, lista, onIncluir }: { catalogo: ItemCatalogo[];
           </span>
         </div>
         <button type="button" onClick={incluir} className="min-h-16 bg-primary-dark px-6 text-center font-bold uppercase leading-tight hover:brightness-110">
-          Incluir<br /><span className="text-xs font-normal">no pedido</span>
+          Incluir<br /><span className="text-xs font-normal">{rotuloIncluir}</span>
         </button>
       </div>
       {erro && <p role="alert" className="mt-1 text-xs font-semibold text-error">{erro}</p>}
@@ -876,7 +883,7 @@ function IncluirItem({ catalogo, lista, onIncluir }: { catalogo: ItemCatalogo[];
                   <span className="block text-[11px] tabular-nums text-ink-muted">{c.codigo || "sem código"} · {c.tipo === "produto" ? "Produto" : "Serviço"}</span>
                   {c.nome}
                 </span>
-                <span className="tabular-nums">{formatarMoeda(precoNaLista(c, 1, lista))}</span>
+                <span className="tabular-nums">{formatarMoeda(precoSugerido(c, 1, lista))}</span>
               </button>
             </li>
           ))}
@@ -886,13 +893,17 @@ function IncluirItem({ catalogo, lista, onIncluir }: { catalogo: ItemCatalogo[];
   );
 }
 
-function TabelaItens({ itens, unidades, catalogo, lista, podeSalvar, onChange }: {
+export function TabelaItens({ itens, unidades, catalogo, lista, podeSalvar, onChange, colunaExtra, formatoMarketup = false }: {
   itens: ItemOrcamento[];
   unidades: Unidade[];
   catalogo: ItemCatalogo[];
   lista: ListaPreco | null;
   podeSalvar: boolean;
   onChange: (i: ItemOrcamento[]) => void;
+  /** Coluna a mais no fim (ex.: "Entrega" do pedido de compra concluído: 100% realizada). */
+  colunaExtra?: { titulo: string; celula: (item: ItemOrcamento, n: number) => ReactNode };
+  /** Quantidade como na ficha da MarketUP: inteira com 2 dígitos ("02 UN"), fracionada com 3 casas. */
+  formatoMarketup?: boolean;
 }) {
   const [editando, setEditando] = useState<number | null>(null);
   const mudar = (n: number, parcial: Partial<ItemOrcamento>) => onChange(itens.map((x, i) => (i === n ? { ...x, ...parcial } : x)));
@@ -908,7 +919,8 @@ function TabelaItens({ itens, unidades, catalogo, lista, podeSalvar, onChange }:
             <th className="w-36 px-2 py-2 text-right font-semibold">Quantidade</th>
             <th className="w-28 px-2 py-2 text-right font-semibold">Unitário (R$)</th>
             <th className="w-28 px-2 py-2 text-right font-semibold">Total (R$)</th>
-            <th className="w-28"><span className="sr-only">Ações</span></th>
+            {colunaExtra && <th className="w-36 px-2 py-2 text-center font-semibold">{colunaExtra.titulo}</th>}
+            {podeSalvar && <th className="w-28"><span className="sr-only">Ações</span></th>}
           </tr>
         </thead>
         <tbody>
@@ -954,7 +966,7 @@ function TabelaItens({ itens, unidades, catalogo, lista, podeSalvar, onChange }:
                 </td>
                 <td className="whitespace-nowrap bg-surface px-2 py-3 text-right text-xl font-bold tabular-nums text-ink">
                   <button type="button" onClick={() => abrir(n)} disabled={!podeSalvar} className="enabled:hover:text-primary" aria-label={`Alterar quantidade de ${item.descricao}`}>
-                    {numeroBr(item.quantidade, 3)} <span className="text-xs font-normal">{item.unidade_sigla}</span>
+                    {formatoMarketup ? quantidadeMarketup(item.quantidade) : numeroBr(item.quantidade, 3)} <span className="text-xs font-normal">{item.unidade_sigla}</span>
                   </button>
                 </td>
                 <td className="px-2 py-3 text-right text-xl tabular-nums text-ink">
@@ -966,8 +978,9 @@ function TabelaItens({ itens, unidades, catalogo, lista, podeSalvar, onChange }:
                   {numeroBr(t.total)}
                   {t.desconto > 0 && <span className="block text-xs text-ink-muted">− {formatarMoeda(t.desconto)}</span>}
                 </td>
-                <td className="whitespace-nowrap bg-surface px-1 py-2 text-center">
-                  {podeSalvar && (
+                {colunaExtra && <td className="p-0">{colunaExtra.celula(item, n)}</td>}
+                {podeSalvar && <td className="whitespace-nowrap bg-surface px-1 py-2 text-center">
+                  {(
                     <>
                       <button
                         type="button"
@@ -986,7 +999,7 @@ function TabelaItens({ itens, unidades, catalogo, lista, podeSalvar, onChange }:
                       </button>
                     </>
                   )}
-                </td>
+                </td>}
               </tr>
             );
           })}
@@ -1009,7 +1022,10 @@ function TabelaItens({ itens, unidades, catalogo, lista, podeSalvar, onChange }:
   );
 }
 
-function BotoesRP({ valor, onChange, disabled }: { valor: boolean; onChange: (percentual: boolean) => void; disabled?: boolean }) {
+export /** "02" para inteiros (como a MarketUP mostra na ficha) e 3 casas para fracionados ("28,780"). */
+const quantidadeMarketup = (q: string) => (Number(q) % 1 === 0 ? String(Number(q)).padStart(2, "0") : numeroBr(q, 3));
+
+export function BotoesRP({ valor, onChange, disabled }: { valor: boolean; onChange: (percentual: boolean) => void; disabled?: boolean }) {
   return (
     <span className="inline-flex" role="group" aria-label="Desconto em R$ ou %">
       {[false, true].map((p) => (
@@ -1029,7 +1045,7 @@ function BotoesRP({ valor, onChange, disabled }: { valor: boolean; onChange: (pe
 }
 
 /** Campo "R$ 0,05" / "10,00%" do quadro de ajustes e do desconto do item. */
-function CampoValor({ valor, prefixo, rotulo, onChange, disabled, erro }: { valor: string; prefixo: string; rotulo: string; onChange: (v: string) => void; disabled?: boolean; erro?: string }) {
+export function CampoValor({ valor, prefixo, rotulo, onChange, disabled, erro }: { valor: string; prefixo: string; rotulo: string; onChange: (v: string) => void; disabled?: boolean; erro?: string }) {
   return (
     <span className="flex flex-col items-end">
       <CampoNumero
@@ -1047,7 +1063,7 @@ function CampoValor({ valor, prefixo, rotulo, onChange, disabled, erro }: { valo
 }
 
 /** Valor em reais com os centavos menores ("620 ,05"), como os totais da MarketUP. */
-function Valor({ valor, className }: { valor: number; className?: string }) {
+export function Valor({ valor, className }: { valor: number; className?: string }) {
   const [inteiro, centavos] = numeroBr(valor).split(",");
   return (
     <span className={cn("tabular-nums", className)} aria-label={formatarMoeda(valor)}>
@@ -1066,7 +1082,7 @@ function Valor({ valor, className }: { valor: number; className?: string }) {
  *   vencimento, observação e valor. Valor que passa do total é cortado no excesso, com aviso.
  * - A lixeira do grupo remove todas as parcelas dele.
  */
-function Pagamento({ tipos, parcelas, total, podeSalvar, erro, apiBase, nome, onChange }: {
+export function Pagamento({ tipos, parcelas, total, podeSalvar, erro, apiBase, nome, onChange, consultaExtra = "", finalidade = "vendas", rotuloTotal = "Total a pagar (R$)", antesDaForma }: {
   tipos: TipoPagamento[];
   parcelas: ParcelaOrcamento[];
   total: number;
@@ -1075,6 +1091,14 @@ function Pagamento({ tipos, parcelas, total, podeSalvar, erro, apiBase, nome, on
   apiBase: string;
   nome: string;
   onChange: (p: ParcelaOrcamento[]) => void;
+  /** Compra: vai junto no "Gerar contas" (ex.: "&conta_gerencial=58"). */
+  consultaExtra?: string;
+  /** Parcelamentos marcados para vendas (orçamento e pedido) ou para compras (pedido de compra), como na MarketUP. */
+  finalidade?: "vendas" | "compras";
+  /** Compra: "Valor total (R$)" no topo do painel. */
+  rotuloTotal?: string;
+  /** Compra: campo "Conta Gerencial" acima da forma de pagamento. */
+  antesDaForma?: ReactNode;
 }) {
   const [tipo, setTipo] = useState<number | "">("");
   const [condicao, setCondicao] = useState<number | "">("");
@@ -1090,7 +1114,7 @@ function Pagamento({ tipos, parcelas, total, podeSalvar, erro, apiBase, nome, on
   const arred = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100;
   const pago = arred(parcelas.reduce((s, p) => s + Number(p.valor || 0), 0));
   const saldo = arred(total - pago);
-  const condicoes = tipos.find((t) => t.id === tipo)?.condicoes.filter((c) => c.vendas) ?? [];
+  const condicoes = tipos.find((t) => t.id === tipo)?.condicoes.filter((c) => c[finalidade]) ?? [];
 
   // Grupos de parcelas (um por "Gerar contas"), na ordem em que foram gerados.
   const grupos: { chave: string; titulo: string; itens: { parcela: ParcelaOrcamento; indice: number }[] }[] = [];
@@ -1113,7 +1137,7 @@ function Pagamento({ tipos, parcelas, total, podeSalvar, erro, apiBase, nome, on
     if (!(quanto > 0)) return avisar("O valor do recebimento não pode ser 0.");
     setGerando(true);
     try {
-      const novas = await api<ParcelaOrcamento[]>(`${apiBase}/gerar-parcelas?condicao=${condicao}&valor=${quanto}`);
+      const novas = await api<ParcelaOrcamento[]>(`${apiBase}/gerar-parcelas?condicao=${condicao}&valor=${quanto}${consultaExtra}`);
       onChange([...parcelas, ...novas]);
       setMensagem("");
       // Como na MarketUP: forma e parcelamento voltam ao vazio e o Valor passa a ser o novo saldo.
@@ -1154,10 +1178,11 @@ function Pagamento({ tipos, parcelas, total, podeSalvar, erro, apiBase, nome, on
       {podeSalvar && (
         <div className="flex flex-col text-surface-raised md:w-[270px]">
           <div className="bg-secondary/85 px-4 py-3 text-right">
-            <p className="text-[11px] uppercase">Total a pagar (R$)</p>
+            <p className="text-[11px] uppercase">{rotuloTotal}</p>
             <Valor valor={saldo} className="text-2xl font-bold" />
           </div>
           <div className="flex flex-col gap-3 bg-secondary p-4">
+            {antesDaForma}
             <label className="text-right text-[11px] uppercase">
               Forma de pagamento
               <select value={tipo} onChange={(e) => { setTipo(e.target.value ? Number(e.target.value) : ""); setCondicao(""); }} className={cn(campoCaixa, "mt-1 text-ink")}>

@@ -76,7 +76,11 @@ export const MENU: MenuGroup[] = [
       {
         label: "Compras",
         recolhivel: true,
-        links: [{ label: "Fornecedores", path: "/estoque/compras/fornecedores", novo: "/estoque/compras/fornecedores/novo" }],
+        links: [
+          { label: "Pedidos", path: "/estoque/compras/pedidos", novo: "/estoque/compras/pedidos/novo" },
+          { label: "Fornecedores", path: "/estoque/compras/fornecedores", novo: "/estoque/compras/fornecedores/novo" },
+          { label: "Compras em aberto", path: "/estoque/compras/em-aberto" },
+        ],
       },
     ]),
   },
@@ -188,6 +192,8 @@ const FUNCIONALIDADE_POR_ROTA: Record<string, string> = {
   "/estoque/tipos-de-estocagem": "tipos_estocagem",
   "/estoque/motivos": "motivos_movimentacao",
   "/estoque/compras/fornecedores": "fornecedores",
+  "/estoque/compras/pedidos": "pedidos_compra",
+  "/estoque/compras/em-aberto": "pedidos_compra",
   "/notas/emitir": "notas_fiscais",
   "/notas/recebidas": "notas_fiscais",
   "/notas/emitidas": "notas_fiscais",

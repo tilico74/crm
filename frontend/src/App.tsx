@@ -28,6 +28,9 @@ import { ComissoesList } from "./resources/comissoes/ComissoesList";
 import { FechamentoForm, FechamentosList } from "./resources/comissoes/Aprovacao";
 import { BaixarVarias } from "./resources/financeiro/BaixarVarias";
 import { FornecedorForm } from "./resources/compras/FornecedorForm";
+import { PedidoCompraForm } from "./resources/compras/PedidoCompraForm";
+import { PedidoCompraImpressao } from "./resources/compras/PedidoCompraImpressao";
+import { PedidosCompraList } from "./resources/compras/PedidosCompraList";
 import { FornecedoresList, TiposFornecedorList } from "./resources/compras/FornecedoresList";
 import { MotivosList, TiposEstocagemList } from "./resources/estoque/Cadastros";
 import { ConsultaEstoque } from "./resources/estoque/Consulta";
@@ -118,6 +121,9 @@ export default function App() {
                 <Route path="motivos" element={<MotivosList />} />
                 <Route path="compras/fornecedores" element={<FornecedoresList />} />
                 <Route path="compras/fornecedores/:id" element={<FornecedorForm />} />
+                <Route path="compras/pedidos" element={<PedidosCompraList />} />
+                <Route path="compras/pedidos/:id" element={<PedidoCompraForm />} />
+                <Route path="compras/em-aberto" element={<PedidosCompraList key="em-aberto" aReceber />} />
               </Route>
               <Route path="ajustes">
                 <Route path="funcionarios" element={<FuncionariosList />} />
@@ -147,6 +153,7 @@ export default function App() {
             >
               <Route path="vendas/orcamentos/:id/imprimir" element={<OrcamentoImpressao />} />
               <Route path="vendas/pedidos/:id/imprimir" element={<DocumentoImpressao tipo="pedido" />} />
+              <Route path="estoque/compras/pedidos/:id/imprimir" element={<PedidoCompraImpressao />} />
               <Route path="vendas/recibos/:conta/imprimir" element={<ReciboImpressao />} />
             </Route>
 

@@ -45,8 +45,9 @@ export function Modal({ titulo, onFechar, children, rodape, largura = "max-w-[75
         largura,
       )}
     >
-      <div className="bg-surface-raised shadow-xl animate-in fade-in-0 slide-in-from-top-12 duration-300 ease-out">
-        <div className="flex items-stretch bg-line">
+      {/* Em telas baixas o conteúdo rola e o título e os botões ficam sempre à vista. */}
+      <div className="flex max-h-[88vh] flex-col bg-surface-raised shadow-xl animate-in fade-in-0 slide-in-from-top-12 duration-300 ease-out">
+        <div className="flex shrink-0 items-stretch bg-line">
           <h2 id={tituloId} className="flex-1 self-center px-4 py-3 text-lg font-bold uppercase text-primary">
             {titulo}
           </h2>
@@ -54,8 +55,8 @@ export function Modal({ titulo, onFechar, children, rodape, largura = "max-w-[75
             <IconX size={26} stroke={3} aria-hidden />
           </button>
         </div>
-        <div className="p-3">{children}</div>
-        {rodape && <div className="flex justify-end gap-2 border-t border-line px-4 py-4">{rodape}</div>}
+        <div className="min-h-0 overflow-y-auto p-3">{children}</div>
+        {rodape && <div className="flex shrink-0 justify-end gap-2 border-t border-line px-4 py-4">{rodape}</div>}
       </div>
     </dialog>
   );
